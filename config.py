@@ -17,7 +17,7 @@ tamanho_y_max = 1080
 # Itens do menu de contexto do canvas
 tipos_widgets = {
     'Botão': {
-        'classe': tk.Button,
+        'classe': 'Button',
         'propriedades': {
             'text': 'Botão',
             'bg': 'white',
@@ -30,7 +30,7 @@ tipos_widgets = {
         }
     },
     'Texto': {
-        'classe': tk.Label,
+        'classe': 'Label',
         'propriedades': {
             'text': 'Texto',
             'bg': 'white',
@@ -42,7 +42,7 @@ tipos_widgets = {
         }
     },
     'Indicador': {
-        'classe': tk.Label,
+        'classe': 'Label',
         'propriedades': {
             'text': '0.00',
             'bg': 'white',
@@ -54,7 +54,7 @@ tipos_widgets = {
         }
     },
     'LED': {
-        'classe': tk.Label,
+        'classe': 'Label',
         'propriedades': {
             'text': '●',
             'bg': 'white',
@@ -66,7 +66,7 @@ tipos_widgets = {
         }
     },
     'Slider': {
-        'classe': tk.Scale,
+        'classe': 'Scale',
         'propriedades': {
             'from_': 0,
             'to': 100,
@@ -76,11 +76,13 @@ tipos_widgets = {
             'font': None,
             'width': None,
             'height': None,
+            'from_': 0,
+            'to': 10,
             'state': 'normal',
         }
     },
     'Imagem': {
-        'classe': tk.Label,
+        'classe': 'Label',
         'propriedades': {
             'text': 'Imagem',
             'bg': 'gray',
@@ -94,7 +96,7 @@ tipos_widgets = {
         }
     },
     'Relógio': {
-        'classe': tk.Label,
+        'classe': 'Label',
         'propriedades': {
             'text': dt.now().strftime('%d/%m/%Y %H:%M:%S'),
             'bg': 'white',
@@ -107,48 +109,78 @@ tipos_widgets = {
     },
 }
 
-props_gerais = {
-    'Texto': {
-        'text': ''
-    },
-    'Fonte': {
-        'font': [
-            'Padrão',
-            'Arial',
-            'Helvetica',
-            'Courier'
-        ],
-        'size': ''
-    },
-    'Cor do Texto': {
-        'fg': ''
-    },
-    'Cor de Fundo': {
-        'bg': ''
-    },
-    'Largura': {
-        'width': ''
-    },
-    'Altura': {
-        'height': ''
-    },
-    'Borda': {
-        'relief': {
-            'Liso': 'flat',
-            'Elevado': 'raised',
-            'Afundado': 'sunken',
-            'Entalhado': 'groove',
-            'Saliênte': 'ridge'
-        }
-    },
+# Propriedades dos widgets
+props_ignoradas = [
+    'takefocus',
+    'textvariable',
+    'bitmap',
+    'cursor',
+    'underline',
+    'insertbackground',
+    'insertborderwidth',
+    'insertwidth',
+    'default',
+    'padx',
+    'pady',
+    'repeatdelay',
+    'repeatinterval',
+    'compound',
+    'borderwidth',  # duplicata de 'bd'
+    'foreground',   # duplicata de 'fg'
+    'background',   # duplicata de 'bg'
+    'activebackground',
+    'activeforeground',
+    'state',  # já está na props_por_tipo
+    'command',  # está na props_por_tipo mas precisa ser tratada na exportação
+    'bigincrement',
+    'digits',
+    'label',
+    'variable',
+    'sliderrelief',
+    'sliderlength',
+]
+
+
+props_equivalentes = {
+    'text': 'Texto',
+    'bg': 'Cor de Fundo',
+    'fg': 'Cor do Texto',
+    'font': 'Fonte',
+    'size': 'Tamanho da Fonte',
+    'width': 'Largura',
+    'height': 'Altura',
+    'command': 'Comando',
+    'justify': 'Justificação',
+    'orient': 'Orientação',
+    'from_': 'Range Mínimo',
+    'to': 'Range Máximo',
+    'resolution': 'Passo',
+    'image': 'Caminho da Imagem',
+    'formato': 'Formato',
+    'relief': 'Borda',
+    'showvalue': 'Exibir Valor',
+    'length': 'Comprimento',
+    'highlightcolor': 'Cor Borda Interna',
+    'highlightbackground': 'Cor Borda Externa',
 }
 
-props_especificas = {
-    'Botão': ['Registrador'],
-    'Texto': ['Justificação'],
-    'Indicador': ['Unidade', 'Casas Decimais'],
-    'LED': ['Cor Ligado', 'Cor Desligado'],
-    'Slider': ['Range Mínimo', 'Range Máximo', 'Passo'],
-    'Imagem': ['Caminho do Arquivo'],
-    'Relógio': ['Formato'],
-}
+
+# Auxiliares
+
+fontes_comuns = [
+    'Arial',
+    'Courier',
+    'Times New Roman',
+    'Helvetica',
+    'Verdana',
+    'Tahoma',
+    'Comic Sans MS',
+    'Lucida Console',
+    'Fixedsys'
+    'System',
+    'Terminal',
+    'Consolas',
+    'Calibri',
+    'Cambria',
+    'Segoe UI',
+]
