@@ -6,55 +6,85 @@ import json
 import config as cfg
 
 # Variáveis Locais
-item_selecionado = None
-modo_edicao = False
 widgets_ids = []
 contador_abas = 0
 
-def salvar_projeto(canvas):
-    from tkinter import filedialog
-    import json
+########## Criar um projeto/aba ##########
+def novo_projeto(notebook, nome=None):
+    global contador_abas
+    # Cria a aba
+    aba_canvas = tk.Frame(notebook, bg=cfg.bg)
+    contador_abas += 1
+    # Canvas
+    canvas = tk.Canvas(aba_canvas, width=cfg.tamanho_x, height=cfg.tamanho_y, relief='groove', bd=1, bg='white')
+    canvas.pack(side='top')
+    canvas.bind('<Button-1>', lambda e: adicionar_widget(e.x, e.y, canvas))
+    canvas.bind('<Button-3>', lambda e: menu_contexto_canvas(e, canvas))
+    # Adiciona a aba ao notebook
+    notebook.add(aba_canvas, text=nome if nome else f'Novo_Projeto_{contador_abas}')
+    notebook.select(aba_canvas)  # foca na nova aba
 
+    return canvas
+
+def excluir_aba_projeto(event, notebook):
+    try:
+        index = notebook.index(f"@{event.x},{event.y}")
+        notebook.forget(index)
+    except tk.TclError:
+        pass
+
+########## Adicionar um widget ##########
+def adicionar_widget(x, y, canvas, widget):
+    global widgets_ids
+    # Encontra as caracteristicas do widget
+    classe = getattr(tk, widget['classe'])
+    props = widget.get('propriedades', {})
+        
+    # Cria o widget e insere no canvas
+    w = classe(canvas, **props)
+    item_id = canvas.create_window(x, y, window=w, anchor='nw')
+    widgets_ids.append([classe.__name__,item_id])
+    w.bind('<Button-3>', lambda e, i=item_id: menu_contexto_widget(e, i, canvas))
+
+    return item_id
+
+########## Salvar o projeto atual em um arquivo Json ##########
+def salvar_projeto(canvas):
     # Pergunta onde salvar
     caminho = filedialog.asksaveasfilename(
         defaultextension='.json',
         filetypes=[('Arquivos JSON', '*.json'), ('Todos os arquivos', '*.*')],
-        title='Salvar arquivo como'
+        title='Salvar arquivo',
     )
     if not caminho:
         return
 
-    # Cria dicionário reverso: {tk.Button: 'Botão', ...}
-    classe_para_tipo = {v['classe']: k for k, v in cfg.tipos_widgets.items()}
-
     # Percorre os widgets do canvas
-    widgets_canvas = []
+    widgets_canvas = {}
     for item_id in canvas.find_all():
         if canvas.type(item_id) == 'window':
             widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
             x, y = canvas.coords(item_id)
 
             # Pega a classe e resolve o nome do tipo
-            classe = widget.__class__
-            tipo = classe_para_tipo.get(classe)
-            if not tipo:
-                print(f"Tipo desconhecido para classe: {classe}")
-                continue
-
+            classe = widget.__class__.__name__
+            tipo = [k for k, v in cfg.tipos_widgets.items() if v['classe'] == classe][0]
             # Pega propriedades
             props = {prop: widget.cget(prop) for prop in widget.config()}
-
-            widgets_canvas.append({
-                'tipo': tipo,
-                'x': x,
-                'y': y,
-                'propriedades': props
-            })
+            # Adiciona ao dicionario
+            widgets_canvas[f'{tipo}_{item_id}'] = {
+                    'classe': classe,
+                    'x': x,
+                    'y': y,
+                    'propriedades': props
+                }
+            
 
     # Salva tudo em JSON
     with open(caminho, 'w', encoding='utf-8') as f:
-        json.dump({'widgets': widgets_canvas}, f, indent=4, ensure_ascii=False)
-        
+        json.dump(widgets_canvas, f, indent=4, ensure_ascii=False)
+
+########## Carrega o projeto de um arquivo Json ##########
 def carregar_projeto(notebook):
     global widgets_ids
     widgets_ids = []
@@ -74,29 +104,14 @@ def carregar_projeto(notebook):
     # Lê o arquivo com os widgets
     with open(caminho.name, 'r', encoding='utf-8') as arquivo:
         widgets = json.load(arquivo)
-    for widget in widgets:
-        tipo = widget['tipo']
-        x = widget['x']
-        y = widget['y']
-        item_id = adicionar_widget(x, y, canvas, widget)
-        widgets_ids.append([tipo,item_id])
-
-def novo_projeto(notebook, nome=None):
-    global modo_edicao, contador_abas
-    # Cria a aba
-    aba_canvas = tk.Frame(notebook, bg=cfg.bg)
-    contador_abas += 1
-    # Canvas
-    canvas = tk.Canvas(aba_canvas, width=cfg.tamanho_x, height=cfg.tamanho_y, relief='groove', bd=1, bg='white')
-    canvas.pack(side='top')
-    canvas.bind('<Button-1>', lambda e: adicionar_widget(e.x, e.y, canvas))
-    canvas.bind('<Button-3>', lambda e: menu_contexto_canvas(e, canvas))
-    # Adiciona a aba ao notebook
-    notebook.add(aba_canvas, text=nome if nome else f'Novo_Projeto_{contador_abas}')
-    notebook.select(aba_canvas)  # foca na nova aba
-
-    return canvas
-
+        for widget in widgets:
+            widget = widgets[widget]
+            classe = getattr(tk, widget['classe'])
+            x = widget['x']
+            y = widget['y']
+            item_id = adicionar_widget(x, y, canvas, widget)
+            widgets_ids.append([classe.__name__,item_id])
+########## Coloca o projeto em tela cheia ##########
 def tela_cheia():
     root = tk._default_root
     if root is not None:
@@ -109,36 +124,16 @@ def tela_cheia():
         else:
             root.unbind('<Escape>')
 
-########## Funções de edição de widgets ##########
-def adicionar_widget(x, y, canvas, widget):
-    global widgets_ids
-    if isinstance(widget, dict):
-        props = {}
-        for prop in widget.config():
-            props[prop] = widget.cget(prop)
-            classe = widget.__class__
-    else:
-        widget = cfg.tipos_widgets.get(widget)
-        props = widget.get('propriedades', {})
-        classe = widget['classe']
-        
-    # Cria o widget e insere no canvas
-    w = classe(canvas, **props)
-    item_id = canvas.create_window(x, y, window=w, anchor='nw')
-    widgets_ids.append([classe.__name__,item_id])
-    w.bind('<Button-3>', lambda e, i=item_id: menu_contexto_widget(e, i, canvas))
-
-    return item_id
-
-########## Funções Auxiliares ##########
+########## Funções de menu de contexto do canvas ##########
 def menu_contexto_canvas(event, canvas):
     context_menu_canvas = tk.Menu(canvas, tearoff=0)
     context_submenu_canvas = tk.Menu(canvas, tearoff=0)
     x = event.x
     y = event.y
-    for widget, classe in cfg.tipos_widgets.items():
+    for nome_widget in cfg.tipos_widgets:
+        widget = cfg.tipos_widgets[nome_widget]
         context_submenu_canvas.add_command(
-            label=widget,
+            label=nome_widget,
             command=lambda w=widget: adicionar_widget(x, y, canvas, w)
         )
     context_menu_canvas.add_cascade(label='Inserir Widget',menu=context_submenu_canvas)
@@ -155,6 +150,7 @@ def menu_contexto_widget(event, item_id, canvas):
 
     context_menu.post(event.x_root, event.y_root)
 
+########## Funções auxiliares ##########
 def mover_widget(item_id, canvas):
     canvas._drag_data = {'item': item_id}
 
@@ -170,28 +166,61 @@ def mover_widget(item_id, canvas):
     canvas.bind('<Button-1>', parar)
 
 def propiedades_widget(item_id, canvas):
-    for i, (tipo, id) in enumerate(widgets_ids):
+    for tipo, id in widgets_ids:
         if id == item_id:
             widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
-            def aplicar():
-                valor = entrada.get()
-                widget.config(**{prop: valor})
+            props = {prop: widget.cget(prop) for prop in widget.config()}
+
+            # Cria a janela de propriedades
+            janela = tk.Toplevel()
+            janela.title("Propriedades do Widget")
+            janela.minsize(200, 300)
+            janela.resizable(False, False)
+            janela.columnconfigure(0, weight=1)
+
+            entradas = {}
+            for i, prop in enumerate(props):
+                # Pega a tradução
+                texto = cfg.props_equivalentes.get(prop)
+                if prop not in cfg.props_ignoradas and texto is not None:
+                    # Adiciona label
+                    tk.Label(janela, text=texto, anchor='w', width=15).grid(row=i, column=0, sticky='w', pady=2)
+                    # Cria as entradas
+                    if prop == 'font':
+                        ent = ttk.Combobox(janela, values=list(cfg.fontes_comuns), state='readonly', width=12)
+                        ent.grid(row=i, column=1, sticky='e', pady=2)
+                        entradas[prop] = ent
+                    elif prop in ['fg', 'bg', 'highlightcolor', 'highlightbackground']:
+                        def escolher_cor(prop):
+                            cor = colorchooser.askcolor(title="Escolher Cor")[1]
+                            if cor:
+                                entradas[prop] = cor
+                        ent = tk.Button(janela, bg=props[prop], width=12, command=lambda: escolher_cor(prop))
+                        ent.grid(row=i, column=1, sticky='e', pady=2)
+                    else:
+                        ent = tk.Entry(janela, width=15)
+                        ent.insert(0, props[prop])  # Preenche com valor atual
+                        ent.grid(row=i, column=1, sticky='e', pady=2)
+                        entradas[prop] = ent
+
+            def aplicar_propriedades(widget, entradas):
+                for prop, entry in entradas.items():
+                    valor = entry.get()
+                    widget.config({prop: valor})
                 janela.destroy()
 
-            janela = tk.Toplevel()
-            tk.Label(janela, text=f'Novo valor para {prop}:').pack(pady=5)
-            entrada = tk.Entry(janela)
-            entrada.pack(pady=5)
-            tk.Button(janela, text='Aplicar', command=aplicar).pack(pady=5)
-            janela.grab_set()
+            # Botão de aplicar
+            tk.Button(janela, text='Aplicar', command=lambda: aplicar_propriedades(widget, entradas)).grid(row=i+1, column=0, columnspan=2, sticky='s', pady=5)
+
             break
 
+########## Excluir widget ##########
 def excluir(item_id, canvas):
     # Remove o widget do canvas e da lista de ids
     global widgets_ids
-    for i, (tipo, id) in enumerate(widgets_ids):
+    for tipo, id in widgets_ids:
         if id == item_id:
             widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
             widget.destroy()
             canvas.delete(item_id)
-            widgets_ids.remove(i)
+            widgets_ids.remove([tipo, id])
