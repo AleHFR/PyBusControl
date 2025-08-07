@@ -1,6 +1,7 @@
 ########### Preâmbulo ###########
 from ctypes import windll
 import tkinter as tk
+from tkinter import ttk
 from funcoes import *
 import config as cfg
 
@@ -44,5 +45,6 @@ menu_ajuda.add_command(label="Documentação")
 ########## Cria o notebook ##########
 notebook = ttk.Notebook(root)
 notebook.pack(fill='both', expand=True)
+notebook.bind("<Button-2>", lambda e: excluir_aba_projeto(e, notebook))
 
 root.mainloop()
