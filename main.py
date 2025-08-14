@@ -2,8 +2,10 @@
 from ctypes import windll
 import tkinter as tk
 from tkinter import ttk
-from funcoes import *
-import config as cfg
+from tab_manager import *
+from widget_manager import *
+from file_handler import *
+from utils import *
 
 windll.shcore.SetProcessDpiAwareness(1)
 

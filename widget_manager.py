@@ -3,8 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter import colorchooser
 from PIL import Image, ImageTk
-import unicodedata
-import json
+from file_handler import *
+from utils import *
 import config as cfg
 
 # Variáveis Locais
@@ -57,82 +57,6 @@ def adicionar_widget(x, y, canvas, widget):
     w.bind('<Button-3>', lambda e, i=item_id: menu_contexto_widget(e, i, canvas))
 
     return item_id
-
-########## Salvar o projeto atual em um arquivo Json ##########
-def salvar_projeto(canvas):
-    # Pergunta onde salvar
-    caminho = filedialog.asksaveasfilename(
-        defaultextension='.json',
-        filetypes=[('Arquivos JSON', '*.json'), ('Todos os arquivos', '*.*')],
-        title='Salvar arquivo',
-    )
-    if not caminho:
-        return
-    
-    # Salva as informações do canvas
-    configs_canvas = {}
-    configs_canvas['config_canvas'] = {
-        'tamanho_x': canvas.winfo_width(),
-        'tamanho_y': canvas.winfo_height(),
-        'imagem_fundo': caminho_imagem,
-    }
-
-    # Percorre os widgets do canvas
-    for item_id in canvas.find_all():
-        if canvas.type(item_id) == 'window':
-            widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
-            x, y = canvas.coords(item_id)
-
-            # Pega a classe e resolve o nome do tipo
-            classe = widget.__class__.__name__
-            tipo = [k for k, v in cfg.tipos_widgets.items() if v['classe'] == classe][0]
-            # Pega propriedades
-            props = {prop: widget.cget(prop) for prop in widget.config()}
-            # Adiciona ao dicionario
-            configs_canvas[f'{tipo}_{item_id}'] = {
-                    'classe': classe,
-                    'x': x,
-                    'y': y,
-                    'propriedades': props
-                }
-            
-
-    # Salva tudo em JSON
-    with open(caminho, 'w', encoding='utf-8') as f:
-        json.dump(configs_canvas, f, indent=4, ensure_ascii=False)
-
-########## Carrega o projeto de um arquivo Json ##########
-def carregar_projeto(notebook):
-    global widgets_ids, imagem_id
-    widgets_ids = []
-    # Procura o arquivo
-    caminho = filedialog.askopenfilename(
-        defaultextension='.json',
-        filetypes=[('Arquivos JSON', '*.json'), ('Todos os arquivos', '*.*')],
-        title='Abrir arquivo'
-    )
-    if not caminho:
-        return
-    
-    # Lê o arquivo com os widgets
-    with open(caminho, 'r', encoding='utf-8') as arquivo:
-        configs = json.load(arquivo)
-        # Cria a área de desenho
-        nome = caminho.split('/')[-1].replace('.json','')
-        configs_canvas = configs['config_canvas']
-        canvas = novo_projeto(notebook, nome=nome, x=configs_canvas['tamanho_x'], y=configs_canvas['tamanho_y'])
-        canvas.image_ref = ImageTk.PhotoImage(Image.open(configs_canvas['imagem_fundo']))
-        imagem_id = canvas.create_image(configs_canvas['tamanho_x']/2, configs_canvas['tamanho_y']/2, anchor='center', image=canvas.image_ref)
-        # Adiciona os widgets
-        for widget in configs:
-            if widget == 'config_canvas':
-                continue
-            widget = configs[widget]
-            classe = getattr(tk, widget['classe'])
-            x = widget['x']
-            y = widget['y']
-            item_id = adicionar_widget(x, y, canvas, widget)
-            widgets_ids.append([classe.__name__,item_id])
 
 ########## Funções de menu de contexto do canvas ##########
 def menu_contexto_canvas(event, canvas):
@@ -197,18 +121,6 @@ def inserir_imagem(canvas):
         return
     canvas.image_ref = ImageTk.PhotoImage(Image.open(caminho_imagem))
     canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor='center', image=canvas.image_ref)
-
-def tela_cheia():
-    root = tk._default_root
-    if root is not None:
-        is_fullscreen = root.attributes('-fullscreen')
-        root.attributes('-fullscreen', not is_fullscreen)
-        
-        # Adiciona ou remove o binding do ESC quando entra/sai do modo tela cheia
-        if not is_fullscreen:
-            root.bind('<Escape>', lambda e: tela_cheia())
-        else:
-            root.unbind('<Escape>')
 
 def mover_widget(item_id, canvas):
     canvas._drag_data = {'item': item_id}
