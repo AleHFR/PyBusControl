@@ -6,7 +6,6 @@ from utils import *
 import config as cfg
 
 # Variáveis Locais
-widgets_ids = []
 caminho_imagem = None
 contador_abas = 0
 

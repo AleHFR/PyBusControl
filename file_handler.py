@@ -3,6 +3,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 from widget_manager import *
 from tab_manager import *
+from utils import *
 import json
 import config as cfg
 
