@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-def listaDinamica(root, values, start_value, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
+def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
     values_orig = values[:]  # cópia para evitar alterar lista original
 
     entry = ttk.Entry(root, width=width_entry if width_entry else 20)

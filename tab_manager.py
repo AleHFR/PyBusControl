@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-from widget_manager import *
-from utils import *
+from widget_manager import adicionar_widget, menu_contexto_canvas
 import config as cfg
 
 # Variáveis Locais

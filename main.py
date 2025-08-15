@@ -2,10 +2,8 @@
 from ctypes import windll
 import tkinter as tk
 from tkinter import ttk
-from tab_manager import *
-from widget_manager import *
-from file_handler import *
-from utils import *
+from tab_manager import novo_projeto, excluir_aba_projeto
+from file_handler import carregar_projeto
 
 windll.shcore.SetProcessDpiAwareness(1)
 

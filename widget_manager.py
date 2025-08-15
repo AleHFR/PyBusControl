@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import colorchooser
-from file_handler import *
-from custom_widgets import *
-from utils import *
+from file_handler import salvar_projeto
+from utils import tela_cheia
 import config as cfg
 
 # Variáveis Locais
@@ -76,56 +75,84 @@ def propiedades_widget(item_id, canvas):
             # Cria a janela de propriedades
             janela = tk.Toplevel()
             janela.title("Propriedades")
-            janela.minsize(250, 300)
+            janela.geometry('300x400')
             janela.resizable(False, False)
-            janela.columnconfigure(0, weight=1)
+
+            # Frame de identificação do widget
+            frame_id = tk.Frame(janela)
+            frame_id.pack(fill="x" , side="top")
+            tk.Label(frame_id, text=f"Widget: {widget.__class__.__name__}_{item_id}").pack(side='top', pady=(5, 0))
+
+            # Frame principal para organizar canvas e botão
+            frame_principal = tk.Frame(janela)
+            frame_principal.pack(fill="both", expand=True)
+
+            # Canvas e frame interno para scrollbar
+            canvas_interno = tk.Canvas(frame_principal)
+            scrollbar = tk.Scrollbar(frame_principal, orient="vertical", command=canvas_interno.yview)
+            canvas_interno.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+            canvas_interno.pack(side="left", fill="both", expand=True)
+
+            frame_interno = tk.Frame(canvas_interno)
+            canvas_interno.create_window((0, 0), window=frame_interno, anchor='nw')
+
+            def atualizar_scroll(event):
+                canvas_interno.configure(scrollregion=canvas_interno.bbox("all"))
+            frame_interno.bind("<Configure>", atualizar_scroll)
+            frame_interno.bind("<Button2-Motion>", atualizar_scroll)
 
             # Funções auxiliares
             def escolher_cor(prop, ent, entradas):
-                cor = colorchooser.askcolor(title="Escolher Cor")[1]
+                cor = colorchooser.askcolor(title="Escolher Cor", initialcolor=ent.cget('bg'))[1]
                 if cor:
-                    ent.delete(0, tk.END)  # troca o texto
+                    ent.delete(0, 'end')
                     ent.insert(0, cor)
                     ent.config(bg=cor)
                     entradas[prop] = ent
+                janela.deiconify()
+                janela.lift()
 
             def aplicar_propriedades(widget, entradas):
-                print(entradas)
                 for prop, entry in entradas.items():
-                    valor = entry.get()
-                    widget.config({prop: valor})
-                janela.destroy()
+                    try:
+                        valor = entry.get()
+                        widget.config({prop: valor})
+                    except:
+                        pass
 
             entradas = {}
             for i, prop in enumerate(props):
                 # Pega a tradução
                 texto = cfg.props_equivalentes.get(prop)
+
                 if prop not in cfg.props_ignoradas and texto is not None:
                     # Adiciona label
-                    tk.Label(janela, text=texto, anchor='w', width=15).grid(row=i, column=0, sticky='w', pady=2)
-                    # Cria as entradas
-                    if prop == 'font':
-                        ent = ttk.Combobox(janela, values=list(cfg.listas_configs_comuns[prop]), textvariable=tk.StringVar(value=props[prop]), state='readonly', width=12)
-                        ent.grid(row=i, column=1, sticky='e', pady=2)
+                    tk.Label(frame_interno, text=texto, anchor='w', width=25).grid(row=i, column=0, sticky='w', pady=2)
+
+                    # Cria as entradas de acordo com o tipo
+                    if prop in cfg.props_selecionaveis:
+                        ent = ttk.Combobox(frame_interno, values=list(cfg.props_selecionaveis[prop]), textvariable=tk.StringVar(value=props[prop]), state='readonly', width=12)
+                        ent.grid(row=i, column=1, pady=2)
                         entradas[prop] = ent
-                    elif prop in ['justify','relief','orient']:
-                        ent = ttk.Combobox(janela, values=list(cfg.listas_configs_comuns[prop]), textvariable=tk.StringVar(value=props[prop]), state='readonly', width=12)
-                        ent.grid(row=i, column=1, sticky='e', pady=2)
-                        entradas[prop] = ent
-                    elif prop in ['fg', 'bg', 'highlightcolor', 'highlightbackground']:
-                        frame_cor = tk.Frame(janela)
-                        frame_cor.grid(row=i, column=1, sticky='e', pady=2)
+
+                    elif prop in cfg.props_cor:
+                        frame_cor = tk.Frame(frame_interno)
+                        frame_cor.grid(row=i, column=1, pady=2)
                         ent = tk.Entry(frame_cor, width=10, bg=props[prop])
-                        ent.grid(row=0, column=0, sticky='e', padx=2)
-                        tk.Button(frame_cor, text='...', command=lambda p=prop, e=ent: escolher_cor(p, e, entradas)).grid(row=0, column=1, padx=2, sticky='e')
+                        ent.grid(row=0, column=0, padx=2)
+                        tk.Button(frame_cor, text='...', command=lambda p=prop, e=ent: escolher_cor(p, e, entradas)).grid(row=0, column=1, padx=2)
+                    
                     else:
-                        ent = tk.Entry(janela, width=15)
-                        ent.insert(0, props[prop])  # Preenche com valor atual
-                        ent.grid(row=i, column=1, sticky='e', pady=2)
+                        ent = tk.Entry(frame_interno, width=15)
+                        ent.insert(0, props[prop])
+                        ent.grid(row=i, column=1, pady=2)
                         entradas[prop] = ent
 
             # Botão de aplicar
-            tk.Button(janela, text='Aplicar', command=lambda: aplicar_propriedades(widget, entradas)).grid(row=i+1, column=0, columnspan=2, sticky='s', pady=5)
+            frame_botao = tk.Frame(janela)
+            frame_botao.pack(side='bottom', fill='x')
+            tk.Button(frame_botao, text='Aplicar', command=lambda: aplicar_propriedades(widget, entradas)).pack(pady=(0,5))
 
             break
 

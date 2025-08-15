@@ -1,4 +1,3 @@
-import tkinter as tk
 from datetime import datetime as dt
 
 # Cores
@@ -20,7 +19,7 @@ tipos_widgets = {
             'text': 'Botão',
             'bg': 'white',
             'fg': 'black',
-            'font': None,
+            'font': 'Arial',
             'width': None,
             'height': None,
             'state': 'normal',
@@ -33,7 +32,7 @@ tipos_widgets = {
             'text': 'Texto',
             'bg': 'white',
             'fg': 'black',
-            'font': None,
+            'font': 'Arial',
             'width': None,
             'height': None,
             'state': 'normal',
@@ -45,7 +44,7 @@ tipos_widgets = {
             'text': '0.00',
             'bg': 'white',
             'fg': 'black',
-            'font': None,
+            'font': 'Arial',
             'width': None,
             'height': None,
             'state': 'normal',
@@ -57,7 +56,7 @@ tipos_widgets = {
             'text': '●',
             'bg': 'white',
             'fg': 'red',
-            'font': None,
+            'font': 'Arial',
             'width': 1,
             'height': 1,
             'state': 'normal',
@@ -71,7 +70,7 @@ tipos_widgets = {
             'orient': 'horizontal',
             'bg': 'SystemButtonFace',
             'fg': 'black',
-            'font': None,
+            'font': 'Arial',
             'width': None,
             'height': None,
             'from_': 0,
@@ -87,7 +86,7 @@ tipos_widgets = {
             'fg': 'white',
             'relief': 'groove',
             'bd': 2,
-            'font': None,
+            'font': 'Arial',
             'width': 30,
             'height': 10,
             'state': 'normal',
@@ -107,63 +106,114 @@ tipos_widgets = {
     },
 }
 
-# Propriedades dos widgets
+# Propriedades que não quero usar
 props_ignoradas = [
-    'takefocus',
-    'textvariable',
-    'bitmap',
-    'cursor',
-    'underline',
-    'insertbackground',
-    'insertborderwidth',
-    'insertwidth',
-    'default',
-    'padx',
-    'pady',
-    'repeatdelay',
-    'repeatinterval',
-    'compound',
-    'borderwidth',  # duplicata de 'bd'
-    'foreground',   # duplicata de 'fg'
-    'background',   # duplicata de 'bg'
-    'activebackground',
-    'activeforeground',
-    'state',  # já está na props_por_tipo
-    'command',  # está na props_por_tipo mas precisa ser tratada na exportação
-    'bigincrement',
-    'digits',
-    'label',
-    'variable',
-    'sliderrelief',
-    'sliderlength',
+    'takefocus',           # Controle de foco do teclado
+    'textvariable',        # Ligação de variável (manipulado no código)
+    'bitmap',              # Pouco usado, só imagens internas do Tk
+    'cursor',              # Cursor do mouse sobre o widget
+    'underline',           # Índice do caractere sublinhado
+    'default',             # Estado padrão de botão (OK, Cancel)
+    'repeatdelay',         # Delay antes de repetição (para Spinbox/Button)
+    'repeatinterval',      # Intervalo de repetição
+    'compound',            # Posição imagem/texto (normalmente fixo)
+    'bigincrement',        # Incremento grande no Scale
+    'digits',              # Dígitos no Scale
+    'label',               # Label no Scale (normalmente fixo)
+    'variable',            # Variável associada (manipulada no código)
+    'highlightcolor',      # Cor interna de foco
+    'highlightbackground', # Cor externa de foco
+    'highlightthickness',  # Espessura de foco
+    'takefocus',           # Controle de foco do teclado
+    'bitmap',              # Pouco usado, só imagens internas do Tk
+    'justify',             # Alinhamento do texto
+    'state',               # Estado do botão
+    'padx',                # Espaço horizontal interno
+    'pady',                # Espaço vertical interno
+    'activebackground',    # Cor de fundo ativa
+    'activeforeground',    # Cor de texto ativo
+    'bd',                  # Espessura da borda - cópia de borderwidth
+    'default',             # Estado padrão de botão (OK, Cancel)
+    'overrelief',          # Relieve ao passar o mouse
+    'repeatdelay',         # Delay antes de repetição
+    'repeatinterval',      # Intervalo de repetição
+    'disabledforeground',  # Cor de texto desabilitado
 ]
 
-# Auxiliares
+# Dicionário de tradução de propriedades
 props_equivalentes = {
+    # Comuns
     'text': 'Texto',
     'bg': 'Cor de Fundo',
     'fg': 'Cor do Texto',
     'font': 'Fonte',
-    'size': 'Tamanho da Fonte',
     'width': 'Largura',
     'height': 'Altura',
-    'command': 'Comando',
-    'justify': 'Justificação',
-    'orient': 'Orientação',
-    'from_': 'Range Mínimo',
-    'to': 'Range Máximo',
-    'resolution': 'Passo',
-    'image': 'Caminho da Imagem',
-    'formato': 'Formato',
+    'cursor': 'Cursor',
     'relief': 'Borda',
+    'borderwidth': 'Espessura da Borda',
+    'bd': 'Espessura da Borda',
+    'highlightbackground': 'Cor da Borda de Destaque (Fora)',
+    'highlightcolor': 'Cor da Borda de Destaque (Dentro)',
+    'highlightthickness': 'Espessura da Borda de Destaque',
+    'anchor': 'Ancoragem',
+    'image': 'Imagem',
+    'bitmap': 'Bitmap',
+    'compound': 'Composição Imagem/Text',
+    'underline': 'Sublinhar Caractere',
+    'justify': 'Alinhamento do Texto',
+    'padx': 'Espaço Horizontal Interno',
+    'pady': 'Espaço Vertical Interno',
+    'state': 'Estado',
+    'takefocus': 'Pode Receber Foco',
+    'activebackground': 'Cor de Fundo Ativa',
+    'activeforeground': 'Cor do Texto Ativo',
+    'disabledforeground': 'Cor do Texto Desabilitado',
+    'overrelief': 'Borda ao Passar o Mouse',
+
+    # Label
+    'wraplength': 'Largura de Quebra de Texto',
+
+    # Button
+    'command': 'Comando',
+    'default': 'Botão Padrão',
+
+    # Scale (Slider)
+    'from_': 'Valor Mínimo',
+    'to': 'Valor Máximo',
+    'orient': 'Orientação',
+    'resolution': 'Passo',
     'showvalue': 'Exibir Valor',
     'length': 'Comprimento',
-    'highlightcolor': 'Cor Borda Interna',
-    'highlightbackground': 'Cor Borda Externa',
+    'sliderlength': 'Comprimento do Slider',
+    'sliderrelief': 'Borda do Slider',
+    'troughcolor': 'Cor da Trilha',
+    'digits': 'Número de Dígitos',
+    'label': 'Rótulo',
+    'bigincrement': 'Incremento Grande',
+    'variable': 'Variável Associada',
+
+    # Entry
+    'show': 'Caractere de Ocultação',
+    'exportselection': 'Exportar Seleção',
+    'insertbackground': 'Cor do Cursor',
+    'insertborderwidth': 'Espessura do Cursor',
+    'insertofftime': 'Cursor Piscando (Off)',
+    'insertontime': 'Cursor Piscando (On)',
+    'insertwidth': 'Largura do Cursor',
+    'selectbackground': 'Cor de Seleção',
+    'selectborderwidth': 'Espessura da Seleção',
+    'selectforeground': 'Cor do Texto Selecionado',
+
+    # Outros
+    'repeatdelay': 'Delay de Repetição',
+    'repeatinterval': 'Intervalo de Repetição',
 }
 
-listas_configs_comuns = {
-    'font':{
+# Dicionário de propriedades comuns
+# Propriedades com valores fixos para seleção
+props_selecionaveis = {
+    'font': {
         'Arial',
         'Courier',
         'Times New Roman',
@@ -172,8 +222,7 @@ listas_configs_comuns = {
         'Tahoma',
         'Comic Sans MS',
         'Lucida Console',
-        'Fixedsys'
-        'System',
+        'Fixedsys',
         'Terminal',
         'Consolas',
         'Calibri',
@@ -196,4 +245,62 @@ listas_configs_comuns = {
         'raised',
         'flat',
     },
+    'anchor': {
+        'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center'
+    },
+    'state': {
+        'normal',
+        'active',
+        'disabled',
+    },
+    'compound': {
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'center',
+        'none',
+    },
+    'showvalue': {
+        True,
+        False,
+    },
+    'underline': {
+        True,
+        False,
+    },
+    'wrap': {  # Para Label, texto com quebra automática
+        True,
+        False,
+    },
+    'takefocus': {
+        True,
+        False,
+    },
+    'repeatdelay': {  # numérico, então deixo comentado
+        # valores inteiros em ms
+    },
+    'repeatinterval': {  # numérico
+        # valores inteiros em ms
+    },
+    'highlightthickness': {  # numérico
+        # valores inteiros em px
+    },
 }
+
+# Propriedades com cores
+props_cor = [
+    'bg',
+    'background',
+    'fg',
+    'foreground',
+    'activebackground',
+    'activeforeground',
+    'disabledforeground',
+    'highlightbackground',
+    'highlightcolor',
+    'selectbackground',
+    'selectforeground',
+    'troughcolor',
+    'insertbackground',
+]
