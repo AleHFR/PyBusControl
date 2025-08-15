@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import colorchooser
-from file_handler import salvar_projeto
-from utils import tela_cheia
+import tab_manager as tm
+import file_handler as fh
+import utils as ut
 import config as cfg
 
 # Variáveis Locais
@@ -36,11 +37,11 @@ def menu_contexto_canvas(event, canvas):
             command=lambda w=widget: adicionar_widget(x, y, canvas, w)
         )
     context_menu_canvas.add_cascade(label='Inserir Widget',menu=context_submenu_canvas)
-    context_menu_canvas.add_command(label='Alterar tamanho',command=lambda:alterar_tamanho_canvas(canvas))
-    context_menu_canvas.add_command(label='Imagem de fundo',command=lambda:inserir_imagem(canvas))
-    context_menu_canvas.add_command(label='Tela cheia',command=lambda:tela_cheia())
+    context_menu_canvas.add_command(label='Alterar tamanho',command=lambda:tm.alterar_tamanho_canvas(canvas))
+    context_menu_canvas.add_command(label='Imagem de fundo',command=lambda:tm.inserir_imagem(canvas))
+    context_menu_canvas.add_command(label='Tela cheia',command=lambda:ut.tela_cheia())
     context_menu_canvas.add_separator()
-    context_menu_canvas.add_command(label='Salvar',command=lambda:salvar_projeto(canvas))
+    context_menu_canvas.add_command(label='Salvar',command=lambda:fh.salvar_projeto(canvas))
     context_menu_canvas.post(event.x_root, event.y_root)
 
 def menu_contexto_widget(event, item_id, canvas):

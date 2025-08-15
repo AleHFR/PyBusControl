@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-from widget_manager import adicionar_widget, menu_contexto_canvas
+import widget_manager as wm
 import config as cfg
 
 # Variáveis Locais
@@ -18,13 +18,13 @@ def novo_projeto(notebook, nome=None, x=None, y=None):
     if x and y:
         canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
         canvas.pack()
-        canvas.bind('<Button-1>', lambda e: adicionar_widget(e.x, e.y, canvas))
-        canvas.bind('<Button-3>', lambda e: menu_contexto_canvas(e, canvas))
+        canvas.bind('<Button-1>', lambda e: wm.adicionar_widget(e.x, e.y, canvas))
+        canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
     else:
         canvas = tk.Canvas(aba_canvas, width=cfg.tamanho_x, height=cfg.tamanho_y, bg='white', borderwidth=0, highlightthickness=0)
         canvas.pack()
-        canvas.bind('<Button-1>', lambda e: adicionar_widget(e.x, e.y, canvas))
-        canvas.bind('<Button-3>', lambda e: menu_contexto_canvas(e, canvas))
+        canvas.bind('<Button-1>', lambda e: wm.adicionar_widget(e.x, e.y, canvas))
+        canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
     # Adiciona a aba ao notebook
     notebook.add(aba_canvas, text=nome if nome else f'Novo_Projeto_{contador_abas}')
     notebook.select(aba_canvas)  # foca na nova aba

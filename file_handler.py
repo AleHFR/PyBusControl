@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-from widget_manager import adicionar_widget
-import json
+import tab_manager as tm
+import widget_manager as wm
 import config as cfg
+import json
 
 # Variáveis Locais
 caminho_imagem = None
@@ -70,7 +71,7 @@ def carregar_projeto(notebook):
         # Cria a área de desenho
         nome = caminho.split('/')[-1].replace('.json','')
         configs_canvas = configs['config_canvas']
-        canvas = novo_projeto(notebook, nome=nome, x=configs_canvas['tamanho_x'], y=configs_canvas['tamanho_y'])
+        canvas = tm.novo_projeto(notebook, nome=nome, x=configs_canvas['tamanho_x'], y=configs_canvas['tamanho_y'])
         canvas.image_ref = ImageTk.PhotoImage(Image.open(configs_canvas['imagem_fundo']))
         imagem_id = canvas.create_image(configs_canvas['tamanho_x']/2, configs_canvas['tamanho_y']/2, anchor='center', image=canvas.image_ref)
         # Adiciona os widgets
@@ -81,5 +82,5 @@ def carregar_projeto(notebook):
             classe = getattr(tk, widget['classe'])
             x = widget['x']
             y = widget['y']
-            item_id = adicionar_widget(x, y, canvas, widget)
+            item_id = wm.adicionar_widget(x, y, canvas, widget)
             widgets_ids.append([classe.__name__,item_id])

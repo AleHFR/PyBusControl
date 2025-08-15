@@ -1,2 +1,0 @@
-# PyBusControl
-Meu TCC

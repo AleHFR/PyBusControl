@@ -2,8 +2,11 @@
 from ctypes import windll
 import tkinter as tk
 from tkinter import ttk
-from tab_manager import novo_projeto, excluir_aba_projeto
-from file_handler import carregar_projeto
+import tab_manager as tm
+import file_handler as fh
+import widget_manager as wm
+import utils as ut
+import config as cfg
 
 windll.shcore.SetProcessDpiAwareness(1)
 
@@ -19,8 +22,8 @@ root.config(menu=menu_bar)
 
 menu_arquivo = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
-menu_arquivo.add_command(label="Novo Projeto", command=lambda:novo_projeto(notebook))
-menu_arquivo.add_command(label="Carregar Projeto", command=lambda:carregar_projeto(notebook))
+menu_arquivo.add_command(label="Novo Projeto", command=lambda:tm.novo_projeto(notebook))
+menu_arquivo.add_command(label="Carregar Projeto", command=lambda:fh.carregar_projeto(notebook))
 menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
@@ -39,6 +42,6 @@ menu_ajuda.add_command(label="Documentação")
 ########## Cria o notebook ##########
 notebook = ttk.Notebook(root)
 notebook.pack(fill='both', expand=True)
-notebook.bind("<Button-2>", lambda e: excluir_aba_projeto(e, notebook))
+notebook.bind("<Button-2>", lambda e: tm.excluir_aba_projeto(e, notebook))
 
 root.mainloop()
