@@ -1,4 +1,19 @@
 import tkinter as tk
+from tkinter import ttk
+import custom_widgets as cw
+
+def preferencias(style):
+    def aplicar():
+        style.theme_use(tema_sel.get())
+
+    # Cria a janela de propriedades
+    janela = cw.menuPropriedades('Preferencias', geometry=(300,200), resizable=(False, False), command=aplicar)
+
+    ttk.Label(janela, text='Tema').pack(padx=2, pady=2, side='left', fill='x')
+    temas = ['clam', 'alt','default','vista','winnative']
+    tema_sel = ttk.Combobox(janela, values=temas)
+    tema_sel.pack(padx=2, pady=2, side='left')
+    tema_sel.current(temas.index(style.theme_use()))
 
 def tela_cheia():
     root = tk._default_root

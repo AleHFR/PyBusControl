@@ -1,6 +1,42 @@
 import tkinter as tk
 from tkinter import ttk
 
+def menuPropriedades(title, geometry=None, resizable=None, command=None):
+    # Cria a janela de propriedades
+    janela = tk.Toplevel()
+    janela.title(title)
+    if geometry:
+        janela.geometry(f'{geometry[0]}x{geometry[1]}')
+    if resizable:
+        janela.resizable(resizable[0], resizable[1])
+
+    # Botão de aplicar
+    frame_botao = ttk.Frame(janela)
+    frame_botao.pack(side='bottom', fill='x')
+    ttk.Button(frame_botao, text='Aplicar', command=command if command else None).pack(pady=2)
+
+    # Frame principal para organizar canvas e botão
+    frame_principal = ttk.Frame(janela)
+    frame_principal.pack(fill="both")
+
+    # Canvas e frame interno para scrollbar
+    canvas_interno = tk.Canvas(frame_principal)
+    scrollbar = ttk.Scrollbar(frame_principal, orient="vertical", command=canvas_interno.yview)
+    canvas_interno.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+    canvas_interno.pack(side="left", fill="both")
+
+    frame_interno = ttk.Frame(canvas_interno)
+    frame_interno.pack(side="top", fill="both")
+    canvas_interno.create_window((0, 0), window=frame_interno, anchor='nw')
+
+    def atualizar_scroll(event):
+        canvas_interno.configure(scrollregion=canvas_interno.bbox("all"))
+    frame_interno.bind("<Configure>", atualizar_scroll)
+    frame_interno.bind("<Button2-Motion>", atualizar_scroll)
+
+    return frame_interno
+
 def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
     values_orig = values[:]  # cópia para evitar alterar lista original
 
@@ -12,7 +48,7 @@ def listaDinamica(root, values, start_value=None, height_entry=None, width_entry
     if start_value:
         entry.insert(0, start_value)
 
-    scrollbar = tk.Scrollbar(root, orient="vertical")
+    scrollbar = ttk.Scrollbar(root, orient="vertical")
     listbox = tk.Listbox(root, yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
 

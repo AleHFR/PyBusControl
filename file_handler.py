@@ -46,7 +46,6 @@ def salvar_projeto(canvas):
                     'y': y,
                     'propriedades': props
                 }
-            
 
     # Salva tudo em JSON
     with open(caminho, 'w', encoding='utf-8') as f:

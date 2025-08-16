@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import widget_manager as wm
@@ -12,7 +13,7 @@ contador_abas = 0
 def novo_projeto(notebook, nome=None, x=None, y=None):
     global contador_abas
     # Cria a aba
-    aba_canvas = tk.Frame(notebook, bg=cfg.bg)
+    aba_canvas = ttk.Frame(notebook)
     contador_abas += 1
     # Canvas
     if x and y:
@@ -47,18 +48,18 @@ def alterar_tamanho_canvas(canvas):
     janela = tk.Toplevel()
     janela.resizable(False, False)
 
-    tk.Label(janela, text='Insira o novo tamanho').pack(side='top')
+    ttk.Label(janela, text='Insira o novo tamanho').pack(side='top')
 
-    frame = tk.Frame(janela)
-    x = tk.Entry(frame, width=10)
+    frame = ttk.Frame(janela)
+    x = ttk.Entry(frame, width=10)
     x.pack(side='left')
     x.insert(0, x_atual)
-    y = tk.Entry(frame, width=10)
+    y = ttk.Entry(frame, width=10)
     y.pack(side='left')
     y.insert(0, y_atual)
     frame.pack(pady=(0,5))
 
-    tk.Button(janela, text='Aplicar', command=lambda:aplicar(x,y)).pack(side='bottom', pady=(0,5))
+    ttk.Button(janela, text='Aplicar', command=lambda:aplicar(x,y)).pack(side='bottom', pady=(0,5))
 
     def aplicar(x,y):
         canvas.config(width=x.get(), height=y.get())

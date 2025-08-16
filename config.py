@@ -17,49 +17,24 @@ tipos_widgets = {
         'classe': 'Button',
         'propriedades': {
             'text': 'Botão',
-            'bg': 'white',
-            'fg': 'black',
-            'font': 'Arial',
-            'width': None,
-            'height': None,
-            'state': 'normal',
-            'command': lambda: print("Botão pressionado"),
         }
     },
     'Texto': {
         'classe': 'Label',
         'propriedades': {
             'text': 'Texto',
-            'bg': 'white',
-            'fg': 'black',
-            'font': 'Arial',
-            'width': None,
-            'height': None,
-            'state': 'normal',
         }
     },
     'Indicador': {
         'classe': 'Label',
         'propriedades': {
             'text': '0.00',
-            'bg': 'white',
-            'fg': 'black',
-            'font': 'Arial',
-            'width': None,
-            'height': None,
-            'state': 'normal',
         }
     },
-    'LED': {
+    'Sinalizador': {
         'classe': 'Label',
         'propriedades': {
             'text': '●',
-            'bg': 'white',
-            'fg': 'red',
-            'font': 'Arial',
-            'width': 1,
-            'height': 1,
-            'state': 'normal',
         }
     },
     'Slider': {
@@ -68,190 +43,98 @@ tipos_widgets = {
             'from_': 0,
             'to': 100,
             'orient': 'horizontal',
-            'bg': 'SystemButtonFace',
-            'fg': 'black',
-            'font': 'Arial',
-            'width': None,
-            'height': None,
-            'from_': 0,
-            'to': 10,
-            'state': 'normal',
+            'length': 100,
         }
     },
     'Imagem': {
         'classe': 'Label',
         'propriedades': {
             'text': 'Imagem',
-            'bg': 'gray',
-            'fg': 'white',
-            'relief': 'groove',
-            'bd': 2,
-            'font': 'Arial',
-            'width': 30,
-            'height': 10,
-            'state': 'normal',
         }
     },
     'Relógio': {
         'classe': 'Label',
         'propriedades': {
             'text': dt.now().strftime('%d/%m/%Y %H:%M:%S'),
-            'bg': 'white',
-            'fg': 'black',
-            'font': ('Consolas', 12),
-            'width': None,
-            'height': None,
-            'state': 'normal',
         }
     },
 }
 
 # Propriedades que não quero usar
 props_ignoradas = [
-    'takefocus',           # Controle de foco do teclado
-    'textvariable',        # Ligação de variável (manipulado no código)
-    'bitmap',              # Pouco usado, só imagens internas do Tk
-    'cursor',              # Cursor do mouse sobre o widget
-    'underline',           # Índice do caractere sublinhado
-    'default',             # Estado padrão de botão (OK, Cancel)
-    'repeatdelay',         # Delay antes de repetição (para Spinbox/Button)
-    'repeatinterval',      # Intervalo de repetição
-    'compound',            # Posição imagem/texto (normalmente fixo)
-    'bigincrement',        # Incremento grande no Scale
-    'digits',              # Dígitos no Scale
-    'label',               # Label no Scale (normalmente fixo)
-    'variable',            # Variável associada (manipulada no código)
-    'highlightcolor',      # Cor interna de foco
-    'highlightbackground', # Cor externa de foco
-    'highlightthickness',  # Espessura de foco
-    'takefocus',           # Controle de foco do teclado
-    'bitmap',              # Pouco usado, só imagens internas do Tk
-    'justify',             # Alinhamento do texto
-    'state',               # Estado do botão
-    'padx',                # Espaço horizontal interno
-    'pady',                # Espaço vertical interno
-    'activebackground',    # Cor de fundo ativa
-    'activeforeground',    # Cor de texto ativo
-    'bd',                  # Espessura da borda - cópia de borderwidth
-    'default',             # Estado padrão de botão (OK, Cancel)
-    'overrelief',          # Relieve ao passar o mouse
-    'repeatdelay',         # Delay antes de repetição
-    'repeatinterval',      # Intervalo de repetição
-    'disabledforeground',  # Cor de texto desabilitado
+
 ]
 
 # Dicionário de tradução de propriedades
 props_equivalentes = {
-    # Comuns
+    # --- Comportamento e Conteúdo ---
     'text': 'Texto',
-    'bg': 'Cor de Fundo',
-    'fg': 'Cor do Texto',
-    'font': 'Fonte',
-    'width': 'Largura',
-    'height': 'Altura',
-    'cursor': 'Cursor',
-    'relief': 'Borda',
-    'borderwidth': 'Espessura da Borda',
-    'bd': 'Espessura da Borda',
-    'highlightbackground': 'Cor da Borda de Destaque (Fora)',
-    'highlightcolor': 'Cor da Borda de Destaque (Dentro)',
-    'highlightthickness': 'Espessura da Borda de Destaque',
-    'anchor': 'Ancoragem',
-    'image': 'Imagem',
-    'bitmap': 'Bitmap',
-    'compound': 'Composição Imagem/Text',
-    'underline': 'Sublinhar Caractere',
-    'justify': 'Alinhamento do Texto',
-    'padx': 'Espaço Horizontal Interno',
-    'pady': 'Espaço Vertical Interno',
+    'textvariable': 'Variável de Texto',
+    'command': 'Comando (Função)',
+    'style': 'Estilo Aplicado',
     'state': 'Estado',
+    'cursor': 'Cursor do Mouse',
     'takefocus': 'Pode Receber Foco',
-    'activebackground': 'Cor de Fundo Ativa',
-    'activeforeground': 'Cor do Texto Ativo',
-    'disabledforeground': 'Cor do Texto Desabilitado',
-    'overrelief': 'Borda ao Passar o Mouse',
-
-    # Label
-    'wraplength': 'Largura de Quebra de Texto',
-
-    # Button
-    'command': 'Comando',
-    'default': 'Botão Padrão',
-
-    # Scale (Slider)
-    'from_': 'Valor Mínimo',
-    'to': 'Valor Máximo',
-    'orient': 'Orientação',
-    'resolution': 'Passo',
-    'showvalue': 'Exibir Valor',
-    'length': 'Comprimento',
-    'sliderlength': 'Comprimento do Slider',
-    'sliderrelief': 'Borda do Slider',
-    'troughcolor': 'Cor da Trilha',
-    'digits': 'Número de Dígitos',
-    'label': 'Rótulo',
-    'bigincrement': 'Incremento Grande',
+    'underline': 'Sublinhar Caractere',
+    'image': 'Imagem',
+    'compound': 'Composição Imagem/Texto',
     'variable': 'Variável Associada',
+    'values': 'Valores da Lista (Combobox)',
+    'show': 'Caractere de Ocultação (Senha)',
 
-    # Entry
-    'show': 'Caractere de Ocultação',
-    'exportselection': 'Exportar Seleção',
-    'insertbackground': 'Cor do Cursor',
-    'insertborderwidth': 'Espessura do Cursor',
-    'insertofftime': 'Cursor Piscando (Off)',
-    'insertontime': 'Cursor Piscando (On)',
-    'insertwidth': 'Largura do Cursor',
-    'selectbackground': 'Cor de Seleção',
-    'selectborderwidth': 'Espessura da Seleção',
+    # --- Dimensão e Posição ---
+    'width': 'Largura (em caracteres)',
+    'length': 'Comprimento (em pixels)',
+    'padding': 'Espaçamento Interno',
+    'justify': 'Alinhamento do Texto',
+    'orient': 'Orientação',
+    'anchor': 'Ancoragem do Conteúdo',
+    
+    # --- Aparência (via Estilo) ---
+    'font': 'Fonte do Texto',
+    'background': 'Cor de Fundo',
+    'foreground': 'Cor do Texto',
+    'borderwidth': 'Largura da Borda',
+    'relief': 'Estilo da Borda',
+    
+    # --- Específicos de Widgets (Comportamento e Estilo) ---
+    'from_': 'Valor Mínimo (Scale)',
+    'to': 'Valor Máximo (Scale)',
+    'troughcolor': 'Cor da Trilha (Scale)',
+    'arrowcolor': 'Cor da Seta (Spinbox)',
+    'fieldbackground': 'Cor de Fundo do Campo de Texto',
+    'insertcolor': 'Cor do Cursor de Texto',
+    'selectbackground': 'Cor de Fundo da Seleção',
     'selectforeground': 'Cor do Texto Selecionado',
-
-    # Outros
-    'repeatdelay': 'Delay de Repetição',
-    'repeatinterval': 'Intervalo de Repetição',
 }
 
 # Dicionário de propriedades comuns
 # Propriedades com valores fixos para seleção
 props_selecionaveis = {
-    'font': {
-        'Arial',
-        'Courier',
-        'Times New Roman',
-        'Helvetica',
-        'Verdana',
-        'Tahoma',
-        'Comic Sans MS',
-        'Lucida Console',
-        'Fixedsys',
-        'Terminal',
-        'Consolas',
-        'Calibri',
-        'Cambria',
-        'Segoe UI',
+    'state': {
+        'normal',      # Habilitado e interativo
+        'disabled',    # Desabilitado
+        'readonly',    # Apenas leitura (para Entry/Combobox)
+    },
+    'orient': {
+        'horizontal',
+        'vertical',
     },
     'justify': {
         'left',
         'center',
         'right',
     },
-    'orient': {
-        'horizontal',
-        'vertical',
-    },
     'relief': {
-        'groove',
-        'ridge',
-        'sunken',
-        'raised',
         'flat',
+        'groove',
+        'raised',
+        'ridge',
+        'solid',
+        'sunken',
     },
     'anchor': {
         'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center'
-    },
-    'state': {
-        'normal',
-        'active',
-        'disabled',
     },
     'compound': {
         'top',
@@ -261,46 +144,20 @@ props_selecionaveis = {
         'center',
         'none',
     },
-    'showvalue': {
-        True,
-        False,
-    },
-    'underline': {
-        True,
-        False,
-    },
-    'wrap': {  # Para Label, texto com quebra automática
-        True,
-        False,
-    },
     'takefocus': {
         True,
         False,
-    },
-    'repeatdelay': {  # numérico, então deixo comentado
-        # valores inteiros em ms
-    },
-    'repeatinterval': {  # numérico
-        # valores inteiros em ms
-    },
-    'highlightthickness': {  # numérico
-        # valores inteiros em px
     },
 }
 
 # Propriedades com cores
 props_cor = [
-    'bg',
     'background',
-    'fg',
     'foreground',
-    'activebackground',
-    'activeforeground',
-    'disabledforeground',
-    'highlightbackground',
-    'highlightcolor',
+    'troughcolor',
+    'arrowcolor',
+    'fieldbackground',
+    'insertcolor',
     'selectbackground',
     'selectforeground',
-    'troughcolor',
-    'insertbackground',
 ]

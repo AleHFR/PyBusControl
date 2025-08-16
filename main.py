@@ -16,6 +16,14 @@ root.title('PyBusControl')
 root.minsize(1280, 720)
 root.bind()
 
+########## Conjunto de Styles padrão ##########
+style = ttk.Style(root)
+style.theme_use('vista')
+
+style.configure('TLabel', background=cfg.bg, foreground='Black')
+style.configure('TButton', background=cfg.bg, foreground='Black')
+style.configure('TFrame', background=cfg.bg, foreground='Black')
+
 ########## Menu ##########
 menu_bar = tk.Menu(root, tearoff=0)
 root.config(menu=menu_bar)
@@ -30,14 +38,13 @@ menu_arquivo.add_command(label="Sair", command=root.quit)
 # Menu Editar
 menu_editar = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Editar", menu=menu_editar)
-menu_editar.add_command(label="Preferências")
+menu_editar.add_command(label="Preferências", command=lambda:ut.preferencias(style))
 
 # Menu Ajuda
 menu_ajuda = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Ajuda", menu=menu_ajuda)
 menu_ajuda.add_command(label="Sobre")
 menu_ajuda.add_command(label="Documentação")
-
 
 ########## Cria o notebook ##########
 notebook = ttk.Notebook(root)
