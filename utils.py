@@ -9,10 +9,10 @@ def preferencias(style):
     # Cria a janela de propriedades
     janela = cw.menuPropriedades('Preferencias', geometry=(300,200), resizable=(False, False), command=aplicar)
 
-    ttk.Label(janela, text='Tema').pack(padx=2, pady=2, side='left', fill='x')
-    temas = ['clam', 'alt','default','vista','winnative']
-    tema_sel = ttk.Combobox(janela, values=temas)
-    tema_sel.pack(padx=2, pady=2, side='left')
+    ttk.Label(janela, text='Tema').pack(padx=5, pady=2, side='left')
+    temas = list(style.theme_names())
+    tema_sel = ttk.Combobox(janela, values=temas, state='readonly', width=10)
+    tema_sel.pack(padx=5, pady=2, side='right')
     tema_sel.current(temas.index(style.theme_use()))
 
 def tela_cheia():

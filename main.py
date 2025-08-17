@@ -20,10 +20,6 @@ root.bind()
 style = ttk.Style(root)
 style.theme_use('vista')
 
-style.configure('TLabel', background=cfg.bg, foreground='Black')
-style.configure('TButton', background=cfg.bg, foreground='Black')
-style.configure('TFrame', background=cfg.bg, foreground='Black')
-
 ########## Menu ##########
 menu_bar = tk.Menu(root, tearoff=0)
 root.config(menu=menu_bar)

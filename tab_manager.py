@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import widget_manager as wm
+import modbus as mb
 import config as cfg
 
 # Variáveis Locais
@@ -12,6 +13,7 @@ contador_abas = 0
 ########## Criar um projeto/aba ##########
 def novo_projeto(notebook, nome=None, x=None, y=None):
     global contador_abas
+    servidores = mb.criar_conexao()
     # Cria a aba
     aba_canvas = ttk.Frame(notebook)
     contador_abas += 1

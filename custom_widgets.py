@@ -12,28 +12,26 @@ def menuPropriedades(title, geometry=None, resizable=None, command=None):
 
     # Botão de aplicar
     frame_botao = ttk.Frame(janela)
-    frame_botao.pack(side='bottom', fill='x')
-    ttk.Button(frame_botao, text='Aplicar', command=command if command else None).pack(pady=2)
-
-    # Frame principal para organizar canvas e botão
-    frame_principal = ttk.Frame(janela)
-    frame_principal.pack(fill="both")
+    frame_botao.pack(side='bottom')
+    ttk.Button(frame_botao, text='Ok', command=command if command else lambda:janela.destroy()).pack(pady=2)
 
     # Canvas e frame interno para scrollbar
-    canvas_interno = tk.Canvas(frame_principal)
-    scrollbar = ttk.Scrollbar(frame_principal, orient="vertical", command=canvas_interno.yview)
+    canvas_interno = tk.Canvas(janela)
+    scrollbar = ttk.Scrollbar(janela, orient="vertical", command=canvas_interno.yview)
     canvas_interno.configure(yscrollcommand=scrollbar.set)
     scrollbar.pack(side="right", fill="y")
-    canvas_interno.pack(side="left", fill="both")
+    canvas_interno.pack(side="left", fill="both", expand=True)
 
     frame_interno = ttk.Frame(canvas_interno)
-    frame_interno.pack(side="top", fill="both")
-    canvas_interno.create_window((0, 0), window=frame_interno, anchor='nw')
+    frame_interno_id = canvas_interno.create_window((0, 0), window=frame_interno, anchor='nw')
 
     def atualizar_scroll(event):
         canvas_interno.configure(scrollregion=canvas_interno.bbox("all"))
     frame_interno.bind("<Configure>", atualizar_scroll)
-    frame_interno.bind("<Button2-Motion>", atualizar_scroll)
+
+    def ajustar_largura_frame(event):
+        canvas_interno.itemconfig(frame_interno_id, width=event.width)
+    canvas_interno.bind('<Configure>', ajustar_largura_frame)
 
     return frame_interno
 

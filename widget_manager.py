@@ -48,7 +48,8 @@ def menu_contexto_canvas(event, canvas):
 def menu_contexto_widget(event, item_id, canvas):
     context_menu = tk.Menu(canvas, tearoff=0)
     context_menu.add_command(label='Mover',command=lambda e=event:mover_widget(item_id, canvas))
-    context_menu.add_command(label='Propriedades',command=lambda:propiedades_widget(item_id, canvas))
+    context_menu.add_command(label='Propriedades',command=lambda:propriedades_widget(item_id, canvas))
+    context_menu.add_command(label='Personalizar',command=lambda:personalizar_widget(item_id, canvas))
     context_menu.add_command(label='Excluir', command=lambda: excluir(item_id, canvas))
 
     context_menu.post(event.x_root, event.y_root)
@@ -67,68 +68,54 @@ def mover_widget(item_id, canvas):
     canvas.bind('<Motion>', mover)
     canvas.bind('<Button-1>', parar)
 
-########## Função para abrir a janela de propriedades ##########
-def propiedades_widget(item_id, canvas):
+########## Função de propriedades do widget ##########
+def propriedades_widget(item_id, canvas):
+    None
+
+########## Função de personalizar a aparencia do widget ##########
+def personalizar_widget(item_id, canvas):
     for tipo, id in widgets_ids:
         if id == item_id:
             widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
-            props = {prop: widget.cget(prop) for prop in widget.config()}
-            print(props)
 
             # Cria a janela de propriedades
-            janela = cw.menuPropriedades('Preferencias', command=lambda: aplicar_propriedades(widget, entradas))
+            janela = cw.menuPropriedades('Personalização', resizable=(False, False), command=lambda:aplicar_propriedades())
 
-            # Funções auxiliares
-            def escolher_cor(prop, ent, entradas):
-                cor = colorchooser.askcolor(title="Escolher Cor", initialcolor=ent.cget('bg'))[1]
-                if cor:
-                    ent.delete(0, 'end')
-                    ent.insert(0, cor)
-                    ent.config(bg=cor)
-                    entradas[prop] = ent
-                janela.deiconify()
-                janela.lift()
-
-            def aplicar_propriedades(widget, entradas):
-                for prop, entry in entradas.items():
-                    try:
-                        valor = entry.get()
-                        widget.config({prop: valor})
-                    except:
-                        pass
+            def aplicar_propriedades():
+                janela.destroy()
 
             entradas = {}
+            def escolher_cor(entry, valor):
+                cor = colorchooser.askcolor(title="Escolher Cor", initialcolor=valor)[1]
+                entry.delete(0, 'end')
+                entry.insert(0, cor)
+                entradas[prop] = cor
+
+            props = {prop: widget.cget(prop) for prop in widget.config()}
+            nomes = cfg.props_equivalentes.get(tipo)
+
             for i, prop in enumerate(props):
-                # Pega a tradução
-                texto = cfg.props_equivalentes.get(prop)
-
-                if prop not in cfg.props_ignoradas and texto is not None:
-                    # Adiciona label
-                    ttk.Label(janela, text=texto, anchor='w', width=25).grid(row=i, column=0, sticky='w', pady=2)
-
-                    # Cria as entradas de acordo com o tipo
+                print(props)
+                if prop not in cfg.props_ignoradas:
+                    nome = nomes.get(prop)
+                    valor = props[prop]
+                    ttk.Label(janela, text=nome, anchor='w', width=25).grid(row=i, column=0, pady=5)
                     if prop in cfg.props_selecionaveis:
-                        ent = ttk.Combobox(janela, values=list(cfg.props_selecionaveis[prop]), textvariable=tk.StringVar(value=props[prop]), state='readonly', width=12)
-                        ent.grid(row=i, column=1, pady=2)
+                        ent = ttk.Combobox(janela, values=list(cfg.props_selecionaveis[prop]), textvariable=tk.StringVar(value=valor), state='readonly', width=12)
+                        ent.grid(row=i, column=1, pady=5)
                         entradas[prop] = ent
 
                     elif prop in cfg.props_cor:
                         frame_cor = ttk.Frame(janela)
-                        frame_cor.grid(row=i, column=1, pady=2)
-                        ent = ttk.Entry(frame_cor, width=10, bg=props[prop])
-                        ent.grid(row=0, column=0, padx=2)
-                        ttk.Button(frame_cor, text='...', command=lambda p=prop, e=ent: escolher_cor(p, e, entradas)).grid(row=0, column=1, padx=2)
-                    
+                        frame_cor.grid(row=i, column=1, pady=5)
+                        ent = ttk.Entry(frame_cor, width=10)
+                        ent.pack(side='left', padx=2)
+                        ttk.Button(frame_cor, text='...', command=lambda e=ent, v=valor: escolher_cor(e, v)).pack(side='left', padx=5)
+
                     else:
-                        ent = ttk.Entry(janela, width=15)
-                        ent.insert(0, props[prop])
+                        ent = ttk.Entry(janela, textvariable=tk.StringVar(value=valor), width=12)
                         ent.grid(row=i, column=1, pady=2)
                         entradas[prop] = ent
-
-            # Botão de aplicar
-            frame_botao = ttk.Frame(janela)
-            frame_botao.pack(side='bottom', fill='x')
-            ttk.Button(frame_botao, text='Aplicar', command=lambda: aplicar_propriedades(widget, entradas)).pack(pady=(0,5))
 
             break
 
@@ -138,7 +125,6 @@ def excluir(item_id, canvas):
     global widgets_ids
     for tipo, id in widgets_ids:
         if id == item_id:
-            print(tipo, id)
             widget = canvas.nametowidget(canvas.itemcget(item_id, 'window'))
             widget.destroy()
             canvas.delete(item_id)
