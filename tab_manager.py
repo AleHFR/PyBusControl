@@ -3,16 +3,25 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import widget_manager as wm
+import file_handler as fh
 import custom_widgets as cw
 import modbus as mb
 import config as cfg
+import utils as ut
 
 # Variáveis Locais
 caminho_imagem = None
 
 ########## Criar um projeto/aba ##########
-def novo_projeto(root):
-    # Cria o notebook principal
+def novo_projeto(root, text=None):
+    # Cria a barra de edição
+    barra_ferramentas = ttk.LabelFrame(root, text=text if text else 'Novo Projeto')
+    barra_ferramentas.pack(side='top', anchor='nw', fill='x', padx=2, pady=2)
+    ttk.Button(barra_ferramentas, text='Nova Aba', command=lambda:nova_aba(notebook)).pack(side='left', padx=5, pady=2)
+    ttk.Button(barra_ferramentas, text='Configurar Servidores', command=lambda:mb.criar_conexao()).pack(side='left', padx=5, pady=2)
+    ttk.Button(barra_ferramentas, text='Tela Cheia', command=lambda:ut.tela_cheia()).pack(side='left', padx=5, pady=2)
+
+    # Cria o notebook principalpil
     notebook = ttk.Notebook(root)
     notebook.pack(fill='both', expand=True)
     notebook.bind("<Button-3>", lambda e: menu_contexto_aba(e, notebook))
@@ -45,12 +54,14 @@ def menu_contexto_aba(event, notebook):
     context_menu = tk.Menu(notebook, tearoff=0)
     context_menu.add_command(label='Mudar nome', command=lambda: mudar_nome(event, notebook))
     context_menu.add_command(label='Excluir aba', command=lambda: excluir_aba_projeto(event, notebook))
+
     context_menu.post(event.x_root, event.y_root)
 
 def mudar_nome(event, notebook):
     index = notebook.index(f"@{event.x},{event.y}")
     nome = cw.perguntarTexto('Novo nome', 'Insira o novo nome da aba')
     notebook.tab(index, text=nome)
+        
 
 ########## Excluir um projeto/aba ##########
 def excluir_aba_projeto(event, notebook):
