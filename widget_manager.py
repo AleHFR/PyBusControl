@@ -40,9 +40,6 @@ def menu_contexto_canvas(event, canvas):
     context_menu_canvas.add_cascade(label='Inserir Widget',menu=context_submenu_canvas)
     context_menu_canvas.add_command(label='Alterar tamanho',command=lambda:tm.alterar_tamanho_canvas(canvas))
     context_menu_canvas.add_command(label='Imagem de fundo',command=lambda:tm.inserir_imagem(canvas))
-    context_menu_canvas.add_command(label='Tela cheia',command=lambda:ut.tela_cheia())
-    context_menu_canvas.add_separator()
-    context_menu_canvas.add_command(label='Salvar',command=lambda:fh.salvar_projeto(canvas))
     context_menu_canvas.post(event.x_root, event.y_root)
 
 def menu_contexto_widget(event, item_id, canvas):

@@ -3,36 +3,54 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import widget_manager as wm
+import custom_widgets as cw
 import modbus as mb
 import config as cfg
 
 # Variáveis Locais
 caminho_imagem = None
-contador_abas = 0
 
 ########## Criar um projeto/aba ##########
-def novo_projeto(notebook, nome=None, x=None, y=None):
-    global contador_abas
+def novo_projeto(root):
+    # Cria o notebook principal
+    notebook = ttk.Notebook(root)
+    notebook.pack(fill='both', expand=True)
+    notebook.bind("<Button-3>", lambda e: menu_contexto_aba(e, notebook))
+
+    # Configura os servidores
     servidores = mb.criar_conexao()
+
+    # Cria a primeira aba
+    canvas = nova_aba(notebook)
+    return canvas
+    
+def nova_aba(notebook, x=None, y=None):
     # Cria a aba
     aba_canvas = ttk.Frame(notebook)
-    contador_abas += 1
     # Canvas
     if x and y:
         canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
-        canvas.pack()
-        canvas.bind('<Button-1>', lambda e: wm.adicionar_widget(e.x, e.y, canvas))
-        canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
     else:
         canvas = tk.Canvas(aba_canvas, width=cfg.tamanho_x, height=cfg.tamanho_y, bg='white', borderwidth=0, highlightthickness=0)
-        canvas.pack()
-        canvas.bind('<Button-1>', lambda e: wm.adicionar_widget(e.x, e.y, canvas))
-        canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
+    canvas.pack()
+    canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
+
     # Adiciona a aba ao notebook
-    notebook.add(aba_canvas, text=nome if nome else f'Novo_Projeto_{contador_abas}')
+    notebook.add(aba_canvas, text='Nova aba')
     notebook.select(aba_canvas)  # foca na nova aba
 
     return canvas
+
+def menu_contexto_aba(event, notebook):
+    context_menu = tk.Menu(notebook, tearoff=0)
+    context_menu.add_command(label='Mudar nome', command=lambda: mudar_nome(event, notebook))
+    context_menu.add_command(label='Excluir aba', command=lambda: excluir_aba_projeto(event, notebook))
+    context_menu.post(event.x_root, event.y_root)
+
+def mudar_nome(event, notebook):
+    index = notebook.index(f"@{event.x},{event.y}")
+    nome = cw.perguntarTexto('Novo nome', 'Insira o novo nome da aba')
+    notebook.tab(index, text=nome)
 
 ########## Excluir um projeto/aba ##########
 def excluir_aba_projeto(event, notebook):

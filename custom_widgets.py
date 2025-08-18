@@ -1,7 +1,28 @@
 import tkinter as tk
 from tkinter import ttk
 
-def menuPropriedades(title, geometry=None, resizable=None, command=None):
+#arrumar
+def perguntarTexto(title, text):
+    janela = tk.Toplevel()
+    janela.title(title)
+    # janela.geometry('300x100')
+    janela.resizable(False, False)
+
+    frame = ttk.Frame(janela)
+    frame.pack(padx=5, pady=5)
+    ttk.Label(frame, text=text).pack(side='left')
+    entrada = ttk.Entry(frame, width=20)
+    entrada.pack(side='right')
+
+    frame_botao = ttk.Frame(janela)
+    frame_botao.pack(side='bottom')
+    ttk.Button(frame_botao, text='Ok', command=lambda:ok()).pack(pady=2)
+
+    def ok():
+        janela.destroy()
+        return entrada.get()
+
+def menuPropriedades(title, geometry=None, resizable=None, command=None, scrollbar=True):
     # Cria a janela de propriedades
     janela = tk.Toplevel()
     janela.title(title)
@@ -15,11 +36,12 @@ def menuPropriedades(title, geometry=None, resizable=None, command=None):
     frame_botao.pack(side='bottom')
     ttk.Button(frame_botao, text='Ok', command=command if command else lambda:janela.destroy()).pack(pady=2)
 
-    # Canvas e frame interno para scrollbar
+    # Canvas e frame interno
     canvas_interno = tk.Canvas(janela)
-    scrollbar = ttk.Scrollbar(janela, orient="vertical", command=canvas_interno.yview)
-    canvas_interno.configure(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side="right", fill="y")
+    if scrollbar:
+        scrollbar = ttk.Scrollbar(janela, orient="vertical", command=canvas_interno.yview)
+        canvas_interno.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
     canvas_interno.pack(side="left", fill="both", expand=True)
 
     frame_interno = ttk.Frame(canvas_interno)

@@ -40,6 +40,7 @@ def criar_conexao(servidores=None, servidor_id=None):
     for c in config_servidor:
         tree.heading(c, text=c)
     tree.pack(side='bottom', fill="x", expand=True, padx=5, pady=5)
+    servidor_id += 1
 
     def atualizar_campos(*args):
         # Limpa campos antigos
@@ -88,7 +89,6 @@ def criar_conexao(servidores=None, servidor_id=None):
                 nome = value
             servidor[label] = value
         servidores[f'server_{servidor_id}'] = servidor
-        servidor_id += 1
         
         # Preenche a tabela com os parâmetros do servidor
         valores = [nome, f'server_{servidor_id}', tipo]
