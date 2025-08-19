@@ -3,7 +3,30 @@ from tkinter import ttk
 import pymodbus as mb
 import serial.tools.list_ports
 import custom_widgets as cw
-import config as cfg
+import scada_settings as ss
+
+rtu_selecionaveis = {
+    'Baudrate':{
+        '9600': 9600,
+        '19200': 19200,
+        '38400': 38400,
+        '57600': 57600,
+        '115200': 115200,
+    },
+    'Paridade':{
+        'Nenhum': 'N',
+        'Par': 'P',
+        'Impar': 'I',
+    },
+    'Bytesize':{
+        '8': 8,
+        '7': 7,
+    },
+    'Stopbits':{
+        '1': 1,
+        '2': 2,
+    }
+}
 
 def criar_conexao(servidores=None, servidor_id=None):
     # Cria a janela
@@ -36,7 +59,11 @@ def criar_conexao(servidores=None, servidor_id=None):
     frame_tree = ttk.LabelFrame(janela, text="Lista de Servidores")
     frame_tree.pack(side='bottom', fill='x', padx=5, pady=5)
     config_servidor = ['Nome', 'ID', 'Tipo']
-    tree = ttk.Treeview(frame_tree, columns=config_servidor, show='headings', height=3)
+    tree = ttk.Treeview(frame_tree, columns=config_servidor, show='headings', height=10)
+    scrollbar = ttk.Scrollbar(frame_tree, orient="vertical", command=tree.yview)
+    scrollbar.pack(side='right', fill='y', padx=5, pady=5)
+    tree.pack(side='left', fill="both", expand=True, padx=5, pady=5)
+    tree.configure(yscrollcommand=scrollbar.set)
     for c in config_servidor:
         tree.heading(c, text=c)
     tree.pack(side='bottom', fill="x", expand=True, padx=5, pady=5)
@@ -55,8 +82,8 @@ def criar_conexao(servidores=None, servidor_id=None):
             frame_temp = ttk.Frame(frame_campos)
             frame_temp.pack(fill='x', pady=2)
             ttk.Label(frame_temp, text=param).pack(side='left', padx=5)
-            if param in cfg.rtu_selecionaveis.keys():
-                values = list(cfg.rtu_selecionaveis[param].keys())
+            if param in rtu_selecionaveis.keys():
+                values = list(rtu_selecionaveis[param].keys())
                 entry = ttk.Combobox(frame_temp, values=values, state='readonly')
             else:
                 if param == 'Porta Serial':

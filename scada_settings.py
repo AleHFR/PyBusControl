@@ -16,22 +16,10 @@ tipos_widgets = {
             'text': 'Botão',
         }
     },
-    'Texto': {
-        'classe': 'Label',
-        'propriedades': {
-            'text': 'Texto',
-        }
-    },
     'Indicador': {
         'classe': 'Label',
         'propriedades': {
             'text': '0.00',
-        }
-    },
-    'Sinalizador': {
-        'classe': 'Label',
-        'propriedades': {
-            'text': '●',
         }
     },
     'Slider': {
@@ -43,41 +31,6 @@ tipos_widgets = {
             'length': 100,
         }
     },
-    'Imagem': {
-        'classe': 'Label',
-        'propriedades': {
-            'text': 'Imagem',
-        }
-    },
-    'Relógio': {
-        'classe': 'Label',
-        'propriedades': {
-            'text': dt.now().strftime('%d/%m/%Y %H:%M:%S'),
-        }
-    },
-}
-
-rtu_selecionaveis = {
-    'Baudrate':{
-        '9600': 9600,
-        '19200': 19200,
-        '38400': 38400,
-        '57600': 57600,
-        '115200': 115200,
-    },
-    'Paridade':{
-        'Nenhum': 'N',
-        'Par': 'P',
-        'Impar': 'I',
-    },
-    'Bytesize':{
-        '8': 8,
-        '7': 7,
-    },
-    'Stopbits':{
-        '1': 1,
-        '2': 2,
-    }
 }
 
 # Propriedades que não quero usar

@@ -3,7 +3,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import tab_manager as tm
 import widget_manager as wm
-import config as cfg
+import scada_settings as ss
 import json
 
 # Variáveis Locais
@@ -36,7 +36,7 @@ def salvar_projeto(canvas):
 
             # Pega a classe e resolve o nome do tipo
             classe = widget.__class__.__name__
-            tipo = [k for k, v in cfg.tipos_widgets.items() if v['classe'] == classe][0]
+            tipo = [k for k, v in ss.tipos_widgets.items() if v['classe'] == classe][0]
             # Pega propriedades
             props = {prop: widget.cget(prop) for prop in widget.config()}
             # Adiciona ao dicionario

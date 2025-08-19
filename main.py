@@ -33,10 +33,4 @@ menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(style))
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
-# Menu Ajuda
-menu_ajuda = tk.Menu(menu_bar, tearoff=0)
-menu_bar.add_cascade(label="Ajuda", menu=menu_ajuda)
-menu_ajuda.add_command(label="Sobre")
-menu_ajuda.add_command(label="Documentação")
-
 root.mainloop()

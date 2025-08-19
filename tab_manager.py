@@ -5,8 +5,8 @@ from PIL import Image, ImageTk
 import widget_manager as wm
 import file_handler as fh
 import custom_widgets as cw
-import modbus as mb
-import config as cfg
+import modbus_settings as ms
+import scada_settings as ss
 import utils as ut
 
 # Variáveis Locais
@@ -18,16 +18,14 @@ def novo_projeto(root, text=None):
     barra_ferramentas = ttk.LabelFrame(root, text=text if text else 'Novo Projeto')
     barra_ferramentas.pack(side='top', anchor='nw', fill='x', padx=2, pady=2)
     ttk.Button(barra_ferramentas, text='Nova Aba', command=lambda:nova_aba(notebook)).pack(side='left', padx=5, pady=2)
-    ttk.Button(barra_ferramentas, text='Configurar Servidores', command=lambda:mb.criar_conexao()).pack(side='left', padx=5, pady=2)
+    ttk.Button(barra_ferramentas, text='Configurar Servidores', command=lambda:ms.criar_conexao()).pack(side='left', padx=5, pady=2)
     ttk.Button(barra_ferramentas, text='Tela Cheia', command=lambda:ut.tela_cheia()).pack(side='left', padx=5, pady=2)
 
     # Cria o notebook principalpil
     notebook = ttk.Notebook(root)
     notebook.pack(fill='both', expand=True)
+    notebook.bind('<Button-2>', lambda e: excluir_aba_projeto(e, notebook))
     notebook.bind("<Button-3>", lambda e: menu_contexto_aba(e, notebook))
-
-    # Configura os servidores
-    servidores = mb.criar_conexao()
 
     # Cria a primeira aba
     canvas = nova_aba(notebook)
@@ -40,7 +38,7 @@ def nova_aba(notebook, x=None, y=None):
     if x and y:
         canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
     else:
-        canvas = tk.Canvas(aba_canvas, width=cfg.tamanho_x, height=cfg.tamanho_y, bg='white', borderwidth=0, highlightthickness=0)
+        canvas = tk.Canvas(aba_canvas, width=ss.tamanho_x, height=ss.tamanho_y, bg='white', borderwidth=0, highlightthickness=0)
     canvas.pack()
     canvas.bind('<Button-3>', lambda e: wm.menu_contexto_canvas(e, canvas))
 
