@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 import platform
+import os
 
 # Imports do projeto
 import tab_manager as tm
@@ -13,8 +14,11 @@ from project_handler import Projeto
 ########## Janela principal ##########
 root = tk.Tk()
 root.title('PyBusControl')
-root.state('zoomed')
+root.attributes('-zoomed', True)
 root.bind()
+# Icone
+icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'pbc.png')
+root.iconphoto(True, tk.PhotoImage(file=icon_path))
 # Conjunto de Styles padrão
 style = ttk.Style(root)
 style.theme_use('default')
@@ -25,7 +29,6 @@ projeto = Projeto()
 if platform.system() == 'Windows':
     from ctypes import windll
     windll.shcore.SetProcessDpiAwareness(1)
-    style.theme_use('vista')
 
 ########## Menu ##########
 menu_bar = tk.Menu(root, tearoff=0)

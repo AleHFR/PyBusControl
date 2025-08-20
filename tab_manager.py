@@ -130,5 +130,6 @@ def inserir_imagem(canvas, notebook, projeto):
     if not caminho_imagem:
         return
     projeto.editar_aba(notebook.tab(notebook.select(), 'text'), 'imagem', caminho_imagem)
+    projeto.exibir()
     canvas.image_ref = ImageTk.PhotoImage(Image.open(caminho_imagem))
     canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor='center', image=canvas.image_ref)

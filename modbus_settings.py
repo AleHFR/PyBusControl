@@ -35,7 +35,7 @@ rtu_selecionaveis = {
 
 def criar_conexao(projeto):
     # Cria a janela
-    janela = cw.janelaScroll('Conexão Modbus', geometry=(350, 450), resizable=(False, False), scrollbar=False)
+    janela = cw.janelaScroll('Conexão Modbus', geometry=(350, 450), resizable=(False, False))
     parametros_tcp = ['Nome', 'IP', 'Porta', 'Timeout (s)']
     parametros_rtu = ['Nome', 'Porta Serial', 'Baudrate', 'Paridade', 'Bytesize', 'Stopbits', 'Timeout (s)']
     conexao = tk.StringVar(value='TCP')
