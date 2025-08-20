@@ -14,21 +14,24 @@ from project_handler import Projeto
 ########## Janela principal ##########
 root = tk.Tk()
 root.title('PyBusControl')
-root.attributes('-zoomed', True)
 root.bind()
 # Icone
 icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'pbc.png')
 root.iconphoto(True, tk.PhotoImage(file=icon_path))
 # Conjunto de Styles padrão
 style = ttk.Style(root)
-style.theme_use('default')
 # Instancia o projeto principal
 projeto = Projeto()
 
-########## Verifica o sistema operacional ##########
+########## Configura conforme o sistema operacional ##########
 if platform.system() == 'Windows':
     from ctypes import windll
     windll.shcore.SetProcessDpiAwareness(1)
+    root.state('zoomed')
+    style.theme_use('vista')
+elif platform.system() == 'Linux':
+    root.attributes('-zoomed', True)
+    style.theme_use('default')
 
 ########## Menu ##########
 menu_bar = tk.Menu(root, tearoff=0)

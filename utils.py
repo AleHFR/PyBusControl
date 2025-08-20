@@ -7,7 +7,7 @@ def preferencias(style):
         style.theme_use(tema_sel.get())
 
     # Cria a janela de propriedades
-    janela = cw.menuPropriedades('Preferencias', geometry=(300,200), resizable=(False, False), command=aplicar)
+    janela = cw.janelaScroll('Preferencias', geometry=(300,200), resizable=(False, False), command=lambda:aplicar)
 
     ttk.Label(janela, text='Tema').pack(padx=5, pady=2, side='left')
     temas = list(style.theme_names())
