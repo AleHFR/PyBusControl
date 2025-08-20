@@ -13,7 +13,7 @@ from project_handler import Projeto
 ########## Janela principal ##########
 root = tk.Tk()
 root.title('PyBusControl')
-root.minsize(1280, 720)
+root.state('zoomed')
 root.bind()
 # Conjunto de Styles padrão
 style = ttk.Style(root)

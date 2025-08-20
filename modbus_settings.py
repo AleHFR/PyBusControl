@@ -1,7 +1,12 @@
+########### Preâmbulo ###########
+# Imports do python
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox, filedialog, colorchooser
 import pymodbus as mb
 import serial.tools.list_ports
+
+# Imports do projeto
 import custom_widgets as cw
 import scada_settings as ss
 
@@ -28,16 +33,15 @@ rtu_selecionaveis = {
     }
 }
 
-def criar_conexao(servidores=None, servidor_id=None):
+def criar_conexao(projeto):
     # Cria a janela
-    janela = cw.menuPropriedades('Conexão Modbus', geometry=(350, 400), resizable=(False, False))
-    parametros_tcp = ['Nome', 'IP', 'Porta', 'ID', 'Timeout (s)']
+    janela = cw.janelaScroll('Conexão Modbus', geometry=(350, 450), resizable=(False, False), scrollbar=False)
+    parametros_tcp = ['Nome', 'IP', 'Porta', 'Timeout (s)']
     parametros_rtu = ['Nome', 'Porta Serial', 'Baudrate', 'Paridade', 'Bytesize', 'Stopbits', 'Timeout (s)']
     conexao = tk.StringVar(value='TCP')
-    if servidores is None:
-        servidores = {}
-    if servidor_id is None:
-        servidor_id = 1
+
+    # Extrai os servidores do projeto
+    servidores = projeto.dados['servidores']
 
     # Frame para adicionar o servidor
     frame_servidores = ttk.LabelFrame(janela, text="Adicionar Servidor")
@@ -52,21 +56,25 @@ def criar_conexao(servidores=None, servidor_id=None):
     frame_campos.pack(fill='x', padx=5, pady=5)
 
     # Botão para adicionar o servidor
-    btn_add = ttk.Button(frame_servidores, text="Adicionar", command=lambda:adicionar_servidor(servidor_id))
+    btn_add = ttk.Button(frame_servidores, text="Adicionar", command=lambda:adicionar_servidor(projeto))
     btn_add.pack(padx=5, pady=5)
 
     # Tabela com os servidores adicionados
     frame_tree = ttk.LabelFrame(janela, text="Lista de Servidores")
     frame_tree.pack(side='bottom', fill='x', padx=5, pady=5)
-    config_servidor = ['Nome', 'ID', 'Tipo']
-    tree = ttk.Treeview(frame_tree, columns=config_servidor, show='headings', height=10)
+    colunas = ['Nome', 'Tipo']
+    tree = ttk.Treeview(frame_tree, columns=colunas, show='headings', height=8)
     scrollbar = ttk.Scrollbar(frame_tree, orient="vertical", command=tree.yview)
     scrollbar.pack(side='right', fill='y', padx=5, pady=5)
     tree.pack(side='left', fill="both", expand=True, padx=5, pady=5)
     tree.configure(yscrollcommand=scrollbar.set)
-    for c in config_servidor:
+    for c in colunas:
         tree.heading(c, text=c)
     tree.pack(side='bottom', fill="x", expand=True, padx=5, pady=5)
+
+    # Atualiza a tabela com os servidores já existentes do projeto
+    for servidor in servidores.keys():
+        tree.insert('', 'end', values=[servidor, servidores[servidor]['tipo']])
 
     def atualizar_campos(*args):
         # Limpa campos antigos
@@ -85,18 +93,21 @@ def criar_conexao(servidores=None, servidor_id=None):
             if param in rtu_selecionaveis.keys():
                 values = list(rtu_selecionaveis[param].keys())
                 entry = ttk.Combobox(frame_temp, values=values, state='readonly')
+            elif param == 'Porta Serial':
+                values = [port.device for port in serial.tools.list_ports.comports()]
+                entry = ttk.Combobox(frame_temp, values=values, state='readonly')
             else:
-                if param == 'Porta Serial':
-                    values = [port.device for port in serial.tools.list_ports.comports()]
-                    entry = ttk.Combobox(frame_temp, values=values, state='readonly')
-                else:
-                    entry = ttk.Entry(frame_temp, width=23)
+                entry = ttk.Entry(frame_temp, width=23)
             entry.pack(side='right', padx=5)
 
     conexao.trace_add('write', atualizar_campos)
     atualizar_campos()
 
-    def adicionar_servidor(servidor_id):
+    def adicionar_servidor(projeto):
+        # Verifica se tem algum campo em branco
+        if '' in [i.winfo_children()[1].get() for i in frame_campos.winfo_children()]:
+            messagebox.showerror('Erro', 'Preencha todos os campos')
+            return
         # Preenche o dicionário com os parâmetros do servidor
         servidor = {}
         nome = None
@@ -114,11 +125,16 @@ def criar_conexao(servidores=None, servidor_id=None):
             if label == 'Nome':
                 nome = value
             servidor[label] = value
-        servidores[f'server_{servidor_id}'] = servidor
-        servidor_id += 1
+        # Verifica se existe um servidor com o mesmo nome
+        if nome in servidores.keys():
+            messagebox.showerror('Erro', 'Ja existe um servidor com esse nome')
+            return
+        servidores[nome] = servidor
         
         # Preenche a tabela com os parâmetros do servidor
-        valores = [nome, f'server_{servidor_id}', tipo]
+        valores = [nome, tipo]
         tree.insert('', 'end', values=valores)  
 
-    return servidores
+        # Salva no projeto
+        projeto.dados['servidores'] = servidores
+        projeto.exibir()

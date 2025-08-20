@@ -3,6 +3,7 @@ from tkinter import ttk
 
 #arrumar
 def perguntarTexto(title, text, default_text=None):
+    # Cria a janela
     janela = tk.Toplevel()
     janela.title(title)
     janela.resizable(False, False)
@@ -10,29 +11,26 @@ def perguntarTexto(title, text, default_text=None):
     # Variável de controle para guardar o texto
     texto_entrada = tk.StringVar(value=default_text if default_text else '')
     
+    # Frame pra colocar os componentes
     frame = ttk.Frame(janela)
     frame.pack(padx=5, pady=5)
-    ttk.Label(frame, text=text).pack(side='left', padx=2)
+    ttk.Label(frame, text=text).pack(padx=5, pady=5)
     
     # Associar a entrada à variável de controle
     entrada = ttk.Entry(frame, textvariable=texto_entrada, width=20)
-    entrada.pack(side='right', padx=2)
-
-    def ok():
-        janela.destroy()
+    entrada.pack(padx=5, pady=5)
 
     # Botão de aplicar
     frame_botao = ttk.Frame(janela)
     frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text='Ok', command=ok).pack(pady=2)
+    ttk.Button(frame_botao, text='Ok', command=lambda:janela.destroy()).pack(pady=2)
     entrada.focus_set()
-    entrada.bind('<Return>', lambda e: ok())
 
-    # A função espera a janela ser fechada
+    # Espera a janela ser fechada pra retornar
     janela.wait_window()
     return texto_entrada.get()
 
-def janelaScroll(title, geometry=None, resizable=None, command=None, scrollbar=True):
+def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=None):
     # Cria a janela de propriedades
     janela = tk.Toplevel()
     janela.title(title)
@@ -44,7 +42,7 @@ def janelaScroll(title, geometry=None, resizable=None, command=None, scrollbar=T
     # Botão de aplicar
     frame_botao = ttk.Frame(janela)
     frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text='Ok', command=command if command else lambda:janela.destroy()).pack(pady=2)
+    ttk.Button(frame_botao, text='Ok', command=lambda:ok()).pack(pady=2)
 
     # Canvas e frame interno
     canvas_interno = tk.Canvas(janela)
@@ -64,6 +62,11 @@ def janelaScroll(title, geometry=None, resizable=None, command=None, scrollbar=T
     def ajustar_largura_frame(event):
         canvas_interno.itemconfig(frame_interno_id, width=event.width)
     canvas_interno.bind('<Configure>', ajustar_largura_frame)
+
+    def ok():
+        if command:
+            command()
+        janela.destroy()
 
     return frame_interno
 
