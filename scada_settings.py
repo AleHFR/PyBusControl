@@ -8,30 +8,7 @@ fonte_texto = ('Calibri', 10)
 tamanho_x = 1280
 tamanho_y = 720
 
-# Itens do menu de contexto do canvas
-tipos_widgets = {
-    'Botão': {
-        'classe': 'Button',
-        'propriedades': {
-            'text': 'Botão',
-        }
-    },
-    'Indicador': {
-        'classe': 'Label',
-        'propriedades': {
-            'text': '0.00',
-        }
-    },
-    'Slider': {
-        'classe': 'Scale',
-        'propriedades': {
-            'from_': 0,
-            'to': 100,
-            'orient': 'horizontal',
-            'length': 100,
-        }
-    },
-}
+
 
 # Propriedades que não quero usar
 props_ignoradas = [

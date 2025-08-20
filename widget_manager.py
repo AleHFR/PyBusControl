@@ -1,23 +1,39 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import colorchooser
+from tkinter import messagebox, filedialog, colorchooser
 import tab_manager as tm
 import file_handler as fh
 import custom_widgets as cw
 import utils as ut
-import scada_settings as ss
+
 
 # Variáveis Locais
+tipos_widgets = {
+    'Botão': {
+        'classe': 'Button',
+        'propriedades': {
+            'text': 'Botão',
+        }
+    },
+    'Indicador': {
+        'classe': 'Label',
+        'propriedades': {
+            'text': '0.00',
+        }
+    },
+    'Slider': {
+        'classe': 'Scale',
+        'propriedades': {
+            'from_': 0,
+            'to': 100,
+            'orient': 'horizontal',
+            'length': 100,
+        }
+    },
+}
 widgets_ids = []
 
-########## Funções de menu de contexto do canvas ##########
-def menu_contexto_canvas(event, canvas):
-    context_menu_canvas = tk.Menu(canvas, tearoff=0)
-    context_menu_canvas.add_command(label='Inserir Widget',command=lambda:adicionar_widget(event.x, event.y, canvas))
-    context_menu_canvas.add_command(label='Alterar tamanho',command=lambda:tm.alterar_tamanho_canvas(canvas))
-    context_menu_canvas.add_command(label='Imagem de fundo',command=lambda:tm.inserir_imagem(canvas))
-    context_menu_canvas.post(event.x_root, event.y_root)
-
+########## Funções de menu de contexto do widget ##########
 def menu_contexto_widget(event, item_id, canvas):
     context_menu = tk.Menu(canvas, tearoff=0)
     context_menu.add_command(label='Mover',command=lambda e=event:mover_widget(item_id, canvas))
@@ -55,13 +71,13 @@ def propriedades_widget(canvas, widget=None):
         frame_selecao = ttk.LabelFrame(janela, text="Selecione o widget:")
         frame_selecao.pack(padx=5, pady=5, fill='x', anchor='w')
 
-        lista_widgets = list(ss.tipos_widgets.keys())
+        lista_widgets = list(tipos_widgets.keys())
         combo_widgets = ttk.Combobox(frame_selecao, textvariable=widget_selecionado, values=lista_widgets,state='readonly')
         combo_widgets.pack(padx=5)
 
     frame_propriedades = ttk.LabelFrame(janela, text="Propriedades:")
     frame_propriedades.pack(padx=5, pady=5, fill='both')
-    for key, value in ss.tipos_widgets[widget_selecionado.get()]['propriedades'].keys():
+    for key, value in tipos_widgets[widget_selecionado.get()]['propriedades'].keys():
         ttk.Label(frame_propriedades, text=key).pack(anchor='w', padx=5)
         ttk.Entry(frame_propriedades, textvariable=value).pack(anchor='w', padx=5)
     
@@ -79,9 +95,8 @@ def propriedades_widget(canvas, widget=None):
     atualizar_campos()
     
     def criar_widget():
-        """Função chamada ao clicar no botão 'Criar'."""
         nome_escolhido = widget_selecionado.get()
-        widget_info = ss.Configuracao.Widgets.tipos_widgets[nome_escolhido]
+        widget_info = tipos_widgets[nome_escolhido]
         
         # Chama a função para adicionar o widget, passando as informações necessárias
         # A posição do widget (100, 100) é um exemplo, pode ser alterada.
@@ -91,7 +106,7 @@ def propriedades_widget(canvas, widget=None):
 
 ########## Função de personalizar a aparencia do widget ##########
 def personalizar_widget(item_id, canvas):
-    print('em desenvolvimento...')
+    tk.messagebox.showinfo('', 'Em desenvolvimento...')
 
 ########## Mover widget ##########
 def mover_widget(item_id, canvas):

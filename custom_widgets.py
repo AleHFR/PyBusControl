@@ -2,27 +2,37 @@ import tkinter as tk
 from tkinter import ttk
 
 #arrumar
-def perguntarTexto(title, text):
+def perguntarTexto(title, text, default_text=None):
     janela = tk.Toplevel()
     janela.title(title)
-    # janela.geometry('300x100')
     janela.resizable(False, False)
 
+    # Variável de controle para guardar o texto
+    texto_entrada = tk.StringVar(value=default_text if default_text else '')
+    
     frame = ttk.Frame(janela)
     frame.pack(padx=5, pady=5)
-    ttk.Label(frame, text=text).pack(side='left')
-    entrada = ttk.Entry(frame, width=20)
-    entrada.pack(side='right')
-
-    frame_botao = ttk.Frame(janela)
-    frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text='Ok', command=lambda:ok()).pack(pady=2)
+    ttk.Label(frame, text=text).pack(side='left', padx=2)
+    
+    # Associar a entrada à variável de controle
+    entrada = ttk.Entry(frame, textvariable=texto_entrada, width=20)
+    entrada.pack(side='right', padx=2)
 
     def ok():
         janela.destroy()
-        return entrada.get()
 
-def menuPropriedades(title, geometry=None, resizable=None, command=None, scrollbar=True):
+    # Botão de aplicar
+    frame_botao = ttk.Frame(janela)
+    frame_botao.pack(side='bottom')
+    ttk.Button(frame_botao, text='Ok', command=ok).pack(pady=2)
+    entrada.focus_set()
+    entrada.bind('<Return>', lambda e: ok())
+
+    # A função espera a janela ser fechada
+    janela.wait_window()
+    return texto_entrada.get()
+
+def janelaScroll(title, geometry=None, resizable=None, command=None, scrollbar=True):
     # Cria a janela de propriedades
     janela = tk.Toplevel()
     janela.title(title)
