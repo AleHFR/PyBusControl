@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-import tab_manager as tm
+import notebook_handler as tm
 import widget_manager as wm
 import scada_settings as ss
 import json

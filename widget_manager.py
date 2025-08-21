@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox, filedialog, colorchooser
-import tab_manager as tm
+import notebook_handler as tm
 import file_handler as fh
 import custom_widgets as cw
 import utils as ut

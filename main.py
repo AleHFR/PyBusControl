@@ -1,3 +1,4 @@
+
 ########### Preâmbulo ###########
 # Imports do python
 import tkinter as tk
@@ -6,22 +7,19 @@ import platform
 import os
 
 # Imports do projeto
-import tab_manager as tm
+import notebook_manager as nm
 import file_handler as fh
 import utils as ut
-from project_handler import Projeto
 
 ########## Janela principal ##########
 root = tk.Tk()
 root.title('PyBusControl')
-root.bind()
+# root.bind()
 # Icone
 icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'pbc.png')
 root.iconphoto(True, tk.PhotoImage(file=icon_path))
 # Conjunto de Styles padrão
 style = ttk.Style(root)
-# Instancia o projeto principal
-projeto = Projeto()
 
 ########## Configura conforme o sistema operacional ##########
 if platform.system() == 'Windows':
@@ -39,7 +37,7 @@ root.config(menu=menu_bar)
 
 menu_arquivo = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
-menu_arquivo.add_command(label="Novo Projeto", command=lambda:tm.novo_projeto(root, projeto))
+menu_arquivo.add_command(label="Novo Projeto", command=lambda:nm.novo_projeto(root))
 menu_arquivo.add_command(label="Carregar Projeto", command=lambda:fh.carregar_projeto(root))
 menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(style))
