@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 
 # Imports do projeto
 import custom_widgets as cw
+import widget_manager as wm
 
 ########## Criar um projeto/aba ##########
 class Notebook:
@@ -19,6 +20,8 @@ class Notebook:
         # Menu de contexto
         def menu_contexto(event, projeto):
             context_menu = tk.Menu(self.notebook, tearoff=0)
+            context_menu.add_command(label='Inserir widget', command=lambda: wm.adicionar_widget(event, projeto))
+            context_menu.add_radiobutton()
             context_menu.add_command(label='Mudar nome', command=lambda: self.mudar_nome(projeto))
             context_menu.add_command(label='Alterar tamanho', command=lambda: self.alterar_tamanho_canvas(projeto, canvas))
             context_menu.add_command(label='Inserir imagem', command=lambda: self.inserir_imagem(projeto, canvas))
