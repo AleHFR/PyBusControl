@@ -3,12 +3,13 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
-from tkinter import messagebox, filedialog, colorchooser
+from tkinter import messagebox, filedialog
 from PIL import Image, ImageTk
 
 # Imports do projeto
 import custom_widgets as cw
 import widget_manager as wm
+import utils as ut
 
 ########## Criar um projeto/aba ##########
 class Notebook:
@@ -21,7 +22,7 @@ class Notebook:
         def menu_contexto(event, projeto):
             context_menu = tk.Menu(self.notebook, tearoff=0)
             context_menu.add_command(label='Inserir widget', command=lambda: wm.adicionar_widget(event, projeto))
-            context_menu.add_radiobutton()
+            context_menu.add_separator()
             context_menu.add_command(label='Mudar nome', command=lambda: self.mudar_nome(projeto))
             context_menu.add_command(label='Alterar tamanho', command=lambda: self.alterar_tamanho_canvas(projeto, canvas))
             context_menu.add_command(label='Inserir imagem', command=lambda: self.inserir_imagem(projeto, canvas))
@@ -46,7 +47,7 @@ class Notebook:
             canvas.pack()
             canvas.bind('<Button-3>', lambda e: menu_contexto(e, projeto))
             # Adiciona a aba ao notebook
-            self.notebook.add(aba_canvas, text=nome_aba)
+            self.notebook.add(aba_canvas, text=nome_aba, image=ut.imagem('excluir.png', (10, 10)), compound='left')
             self.notebook.select(aba_canvas)
     
     ########## Mudar o nome da aba ##########

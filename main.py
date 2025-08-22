@@ -1,10 +1,8 @@
-
 ########### Preâmbulo ###########
 # Imports do python
 import tkinter as tk
 from tkinter import ttk
 import platform
-import os
 
 # Imports do projeto
 import notebook_manager as nm
@@ -14,10 +12,9 @@ import utils as ut
 ########## Janela principal ##########
 root = tk.Tk()
 root.title('PyBusControl')
-# root.bind()
+root.bind()
 # Icone
-icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'pbc.png')
-root.iconphoto(True, tk.PhotoImage(file=icon_path))
+root.iconphoto(True, ut.imagem('pbc.png'))
 # Conjunto de Styles padrão
 style = ttk.Style(root)
 

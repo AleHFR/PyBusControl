@@ -33,20 +33,9 @@ tipos_widgets = {
 }
 widgets_ids = []
 
-########## Funções de menu de contexto do widget ##########
-def menu_contexto_widget(event, item_id, canvas):
-    context_menu = tk.Menu(canvas, tearoff=0)
-    context_menu.add_command(label='Mover',command=lambda e=event:mover_widget(item_id, canvas))
-    context_menu.add_command(label='Propriedades',command=lambda:propriedades_widget(item_id, canvas))
-    context_menu.add_command(label='Personalizar',command=lambda:personalizar_widget(item_id, canvas))
-    context_menu.add_command(label='Excluir', command=lambda: excluir(item_id, canvas))
-
-    context_menu.post(event.x_root, event.y_root)
-
 ########## Adicionar um widget ##########
-def adicionar_widget(x, y, canvas):
-    global widgets_ids
-
+def adicionar_widget(projeto):
+    
     widget = propriedades_widget(canvas)
 
     # Encontra as caracteristicas do widget
@@ -60,6 +49,16 @@ def adicionar_widget(x, y, canvas):
     w.bind('<Button-3>', lambda e, i=item_id: menu_contexto_widget(e, i, canvas))
 
     return item_id
+
+########## Funções de menu de contexto do widget ##########
+def menu_contexto_widget(event, item_id, canvas):
+    context_menu = tk.Menu(canvas, tearoff=0)
+    context_menu.add_command(label='Mover',command=lambda e=event:mover_widget(item_id, canvas))
+    context_menu.add_command(label='Propriedades',command=lambda:propriedades_widget(item_id, canvas))
+    context_menu.add_command(label='Personalizar',command=lambda:personalizar_widget(item_id, canvas))
+    context_menu.add_command(label='Excluir', command=lambda: excluir(item_id, canvas))
+
+    context_menu.post(event.x_root, event.y_root)
 
 ########## Função de propriedades do widget ##########
 def propriedades_widget(canvas, widget=None):

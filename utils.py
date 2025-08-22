@@ -1,6 +1,16 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 import custom_widgets as cw
+from PIL import Image, ImageTk
+
+def imagem(nome, tamanho_icone=None):
+    caminho_icone = os.path.join(os.path.dirname(__file__), 'assets', nome)
+    image = Image.open(caminho_icone)
+    if tamanho_icone:
+        image = image.resize((tamanho_icone))
+    image = ImageTk.PhotoImage(image)
+    return image
 
 def preferencias(style):
     def aplicar():

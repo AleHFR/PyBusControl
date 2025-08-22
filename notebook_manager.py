@@ -1,18 +1,16 @@
 ########### Preâmbulo ###########
 # Imports do python
-import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog
-from PIL import Image, ImageTk
 from tktooltip import ToolTip
 
 # Imports do projeto
 import notebook_handler as nh
 import project_handler as pj
 import widget_manager as wm
-import custom_widgets as cw
 import modbus_handler as mh
 import utils as ut
+
+imagens = {}
 
 def novo_projeto(root, nome=None):
     # Instancia o projeto principal
@@ -25,30 +23,28 @@ def novo_projeto(root, nome=None):
     itens = {
         'Nova Aba': {
             'command': lambda: notebook.add_aba(projeto),
-            'icone': 'assets/nova_aba.png',
+            'icone': 'nova_aba.png',
         },
         'Configurar Servidores': {
             'command': lambda:mh.criar_conexao(projeto),
-            'icone': 'assets/servidor.png',
+            'icone': 'servidor.png',
         },
         'Inserir Widget': {
-            'command': lambda e:wm.adicionar_widget(e.x, e.y, projeto),
-            'icone': 'assets/nova_aba.png',
-        },
-        'Configurar Aba': {
-            'command': lambda:notebook.alterar_tamanho_canvas(projeto),
-            'icone': 'assets/nova_aba.png',
+            'command': lambda e:wm.adicionar_widget(projeto),
+            'icone': 'novo_widget.png',
         },
         'Tela Cheia':{
             'command': lambda:ut.tela_cheia(),
-            'icone': 'assets/nova_aba.png',
+            'icone': 'tela_cheia.png',
         },
     }
     # Cria os botões
-    tamanho_icone = (25, 25)
-    for i in itens.keys():
-        command = itens[i]['command']
-        image = ImageTk.PhotoImage(Image.open(itens[i]['icone']).resize(tamanho_icone))
-        bt = ttk.Button(barra_ferramentas, text='', command=command, image=image)
-        bt.pack(side='left', padx=5, pady=2)
-        ToolTip(bt, msg=i)
+    for nome_botao, cfg in itens.items():
+        imagens[nome_botao] = ut.imagem(cfg['icone'], (15, 15))
+        bt = ttk.Button(
+            barra_ferramentas,
+            command=cfg['command'],
+            image=imagens[nome_botao]
+        )
+        bt.pack(side='left', padx=1, pady=2)
+        ToolTip(bt, msg=nome_botao)

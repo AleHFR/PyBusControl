@@ -2,13 +2,13 @@
 # Imports do python
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox, filedialog, colorchooser
-import pymodbus as mb
+from tkinter import messagebox
 import serial.tools.list_ports
+import asyncio
+from pymodbus.client import AsyncModbusTcpClient
 
 # Imports do projeto
 import custom_widgets as cw
-import scada_settings as ss
 
 rtu_selecionaveis = {
     'Baudrate':{
@@ -138,3 +138,19 @@ def criar_conexao(projeto):
         # Salva no projeto
         projeto.dados['servidores'] = servidores
         projeto.exibir()
+
+# --- Função principal assíncrona ---
+async def conectar():
+    device_ip = "192.168.0.3"
+    device_port = 502
+
+    client = AsyncModbusTcpClient(device_ip, port=device_port)
+    await client.connect()
+    if client.connected:
+        resultado = await client.read_holding_registers(address=0, count=1, device_id=1)
+        print(f"Valor lido: {resultado.registers[0]}")
+        await client.write_register(address=0, value=100, device_id=1)
+        await client.write_coil(address=0, value=True, device_id=1)   # Liga LED
+        await asyncio.sleep(1)
+        await client.write_coil(address=0, value=False, device_id=1)  # Desliga LED
+        client.close()
