@@ -7,7 +7,7 @@ from tktooltip import ToolTip
 import notebook_handler as nh
 import project_handler as pj
 import widget_manager as wm
-import modbus_handler as mh
+import modbus_manager as mm
 import utils as ut
 
 imagens = {}
@@ -26,12 +26,12 @@ def novo_projeto(root, nome=None):
             'icone': 'nova_aba.png',
         },
         'Configurar Servidores': {
-            'command': lambda:mh.criar_conexao(projeto),
+            'command': lambda:mm.configurar_servidores(projeto),
             'icone': 'servidor.png',
         },
         'Inserir Widget': {
             'command': lambda e:wm.adicionar_widget(projeto),
-            'icone': 'novo_widget.png',
+            'icone': 'widget.png',
         },
         'Tela Cheia':{
             'command': lambda:ut.tela_cheia(),

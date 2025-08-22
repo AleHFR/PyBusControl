@@ -1,8 +1,6 @@
 ########### Preâmbulo ###########
 # Imports do python
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox, filedialog, colorchooser
+from tkinter import messagebox
 
 class Projeto:
     def __init__(self):
