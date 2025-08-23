@@ -31,7 +31,6 @@ class Projeto:
             }
             return True
         else:
-            messagebox.showerror("Erro", f"A aba '{nome_aba}' ja existe.")
             return False
         
     def novoNome_aba(self, nome_aba, novo_nome_aba):
@@ -40,7 +39,6 @@ class Projeto:
             del self.dados['notebook'][nome_aba]
             return True
         else:
-            messagebox.showerror("Erro", f"Já existe uma aba com o nome'{nome_aba}'.")
             return False
 
     def config_aba(self, nome_aba, chave, novo_valor):
@@ -55,6 +53,10 @@ class Projeto:
         if nome_aba in self.dados['notebook']:
             self.dados['notebook'][nome_aba]['widgets'][nome_widget] = dados_widget
 
+    def config_widget(self, nome_aba, nome_widget, config, novo_valor):
+        if config in self.dados['notebook'][nome_aba]['widgets'][nome_widget].keys():
+            self.dados['notebook'][nome_aba]['widgets'][nome_widget][config] = novo_valor
+
     def del_widget(self, nome_aba, nome_widget):
         if nome_aba in self.dados['notebook'] and 'widgets' in self.dados['notebook'][nome_aba]:
             if nome_widget in self.dados['notebook'][nome_aba]['widgets']:
@@ -68,8 +70,6 @@ class Projeto:
     def novoNome_servidor(self, nome_servidor, novo_nome_servidor):
         if novo_nome_servidor not in self.dados['servidores']:
             self.dados['servidores'][novo_nome_servidor] = self.dados['servidores'].pop(nome_servidor)
-        else:
-            messagebox.showerror("Erro", f"Já existe um servidor com o nome '{novo_nome_servidor}'.")
 
     def config_servidor(self, nome_servidor, config, valor):
         if config in self.dados['servidores'][nome_servidor].keys():

@@ -15,21 +15,26 @@ import utils as ut
 class Notebook:
     def __init__(self, root):
         self.notebook = ttk.Notebook(root)
-        self.notebook.pack(side='bottom',fill='both', expand=True)
+        self.notebook.pack(side='bottom',fill='both')
     
     def add_aba(self, projeto, x=None, y=None):
         # Menu de contexto
         def menu_contexto(event, projeto):
             context_menu = tk.Menu(self.notebook, tearoff=0)
-            context_menu.add_command(label='Inserir widget', command=lambda: wm.adicionar_widget(event, projeto))
-            context_menu.add_separator()
-            context_menu.add_command(label='Mudar nome', command=lambda: self.mudar_nome(projeto))
+            context_menu.add_command(label='Inserir widget', command=lambda e: wm.adicionar_widget(e, projeto))
+            context_menu.add_command(label='Mudar nome', command=lambda: self.novoNome_aba(projeto))
             context_menu.add_command(label='Alterar tamanho', command=lambda: self.alterar_tamanho_canvas(projeto, canvas))
             context_menu.add_command(label='Inserir imagem', command=lambda: self.inserir_imagem(projeto, canvas))
+            context_menu.add_separator()
             context_menu.add_command(label='Excluir aba', command=lambda: self.del_aba(projeto))
             context_menu.post(event.x_root, event.y_root)
 
         # Pergunta o nome da aba
+        if x and y:
+            pass
+        else:
+            x = 1280
+            y = 780
         nome_aba = cw.perguntarTexto('Nome da aba', 'Insira o nome da aba:', default_text='Nova Aba')
 
         # Tenta criar a aba no projeto
@@ -38,12 +43,7 @@ class Notebook:
         if operacao:
             # Cria a aba
             aba_canvas = ttk.Frame(self.notebook)
-            if x and y:
-                canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
-            else:
-                x = 1280
-                y = 780
-                canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
+            canvas = tk.Canvas(aba_canvas, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
             canvas.pack()
             canvas.bind('<Button-3>', lambda e: menu_contexto(e, projeto))
             # Adiciona a aba ao notebook
@@ -51,7 +51,7 @@ class Notebook:
             self.notebook.select(aba_canvas)
     
     ########## Mudar o nome da aba ##########
-    def mudar_nome(self, projeto):
+    def novoNome_aba(self, projeto):
         index = self.notebook.select()
         nome_aba = self.notebook.tab(index, 'text')
         novo_nome = cw.perguntarTexto('Novo nome', 'Insira o novo nome da aba')

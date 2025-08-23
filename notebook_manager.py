@@ -13,6 +13,11 @@ import utils as ut
 imagens = {}
 
 def novo_projeto(root, nome=None):
+    # Limpa o root
+    for widget in root.winfo_children():
+        # Destroi apenas os widgets não necessários
+        if widget.winfo_class() not in ['LabelFrame', 'Menu']:
+            widget.destroy()
     # Instancia o projeto principal
     notebook = nh.Notebook(root)
     projeto = pj.Projeto()

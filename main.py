@@ -22,16 +22,17 @@ style = ttk.Style(root)
 if platform.system() == 'Windows':
     from ctypes import windll
     windll.shcore.SetProcessDpiAwareness(1)
-    root.state('zoomed')
-    style.theme_use('vista')
+    root.state('zoomed') # inicia a janela em tela cheia
+    style.theme_use('vista') # Escolhe o melhor tema para o Windows
 elif platform.system() == 'Linux':
-    root.attributes('-zoomed', True)
-    style.theme_use('default')
+    root.attributes('-zoomed', True) # inicia a janela em tela cheia
+    style.theme_use('default') # Escolhe o melhor tema para o Linux
 
 ########## Menu ##########
 menu_bar = tk.Menu(root, tearoff=0)
 root.config(menu=menu_bar)
 
+# Criar um menu de arquivo
 menu_arquivo = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:nm.novo_projeto(root))
@@ -39,5 +40,10 @@ menu_arquivo.add_command(label="Carregar Projeto", command=lambda:fh.carregar_pr
 menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(style))
 menu_arquivo.add_command(label="Sair", command=root.quit)
+
+# Cria um frame central
+# frame_central = ttk.Frame(root, relief='raised', borderwidth=1, width=500, height=400)
+# frame_central.pack(anchor='center')
+# fazer depois
 
 root.mainloop()
