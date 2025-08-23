@@ -47,7 +47,7 @@ class Notebook:
             canvas.pack()
             canvas.bind('<Button-3>', lambda e: menu_contexto(e, projeto))
             # Adiciona a aba ao notebook
-            self.notebook.add(aba_canvas, text=nome_aba, image=ut.imagem('excluir.png', (10, 10)), compound='left')
+            self.notebook.add(aba_canvas, text=nome_aba)
             self.notebook.select(aba_canvas)
     
     ########## Mudar o nome da aba ##########
