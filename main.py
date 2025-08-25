@@ -25,7 +25,7 @@ if platform.system() == 'Windows':
     # root.state('zoomed') # inicia a janela em tela cheia
     style.theme_use('vista') # Escolhe o melhor tema para o Windows
 elif platform.system() == 'Linux':
-    root.attributes('-zoomed', True) # inicia a janela em tela cheia
+    # root.attributes('-zoomed', True) # inicia a janela em tela cheia
     style.theme_use('default') # Escolhe o melhor tema para o Linux
 
 ########## Menu ##########

@@ -11,8 +11,4 @@ import utils as ut
 
 class Widget:
     def __init__(self):
-        self.modbus = None
-        self.style = None
-    
-    def style(self, style):
-        self.style = style
+        self.canvas = None
