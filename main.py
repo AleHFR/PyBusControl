@@ -22,7 +22,7 @@ style = ttk.Style(root)
 if platform.system() == 'Windows':
     from ctypes import windll
     windll.shcore.SetProcessDpiAwareness(1)
-    root.state('zoomed') # inicia a janela em tela cheia
+    # root.state('zoomed') # inicia a janela em tela cheia
     style.theme_use('vista') # Escolhe o melhor tema para o Windows
 elif platform.system() == 'Linux':
     root.attributes('-zoomed', True) # inicia a janela em tela cheia

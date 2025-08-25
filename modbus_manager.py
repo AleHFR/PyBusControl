@@ -21,14 +21,13 @@ selecionaveis = {
 
 # Estruturas padrão para cada tipo de servidor
 estrutura_servidor = {
-    'TCP': {'Conexão': 'TCP', 'IP': '127.0.0.1', 'Porta': 502, 'Timeout (s)': 1},
+    'TCP': {'Conexão': 'TCP', 'IP': '127.168.0.1', 'Porta': 502, 'Timeout (s)': 1},
     'RTU': {'Conexão': 'RTU', 'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
 }
 
 # Dicionário para salvar os widgets das imagens
 imagens = {}
 
-# Função para configurar os servidores
 def configurar_servidores(projeto):
     # Cria a janela
     janela = cw.janelaScroll('Conexão Modbus', geometry=(450, 400), resizable=(False, False), scrollbar=False)
@@ -67,7 +66,7 @@ def configurar_servidores(projeto):
     lista = tk.Listbox(frame_servidores, height=20, width=30)
     lista.pack(fill='both', expand=True)
     # Define o evento para chamar a atualização em modo de visualização
-    lista.bind('<<ListboxSelect>>', lambda e: atualizar_campos)
+    lista.bind('<<ListboxSelect>>', lambda e:atualizar_campos())
     # Coloca os servidores na lista
     for server in servidores.keys():
         lista.insert('end', server)
@@ -76,25 +75,27 @@ def configurar_servidores(projeto):
     frame_parametros = ttk.LabelFrame(janela, text="Parâmetros")
     frame_parametros.pack(side='right', fill='both', expand=True, padx=5, pady=5)
 
-    # --- Função de atualização dos campos ---
-    def atualizar_campos(edit_mode=False):
-        # Limpa todos os widgets antigos do frame de parâmetros
-        for widget in frame_parametros.winfo_children():
-            widget.destroy()
+    def on_tipo_change(event, selecao):
+        if selecao:
+            novo_tipo = event.widget.get()
+            nome_servidor = lista.get(selecao[0])
+            servidores[nome_servidor]= estrutura_servidor[novo_tipo].copy()
+            lista.selection_set(selecao[0])
+            atualizar_campos(mudanca=True)
+            editar_servidor(frame_parametros)
+
+    def atualizar_campos():
         # Verifica se tem algum servidor selecionado
         selecao = lista.curselection()
         if not selecao: return
+
+        # Limpa todos os widgets antigos do frame de parâmetros
+        for widget in frame_parametros.winfo_children():
+            widget.destroy()
+        
+        # Pega o servidor selecionado
         nome_servidor = lista.get(selecao[0])
         servidor_selecionado = servidores.get(nome_servidor)
-        
-        # Função interna para lidar com a mudança do tipo de conexão
-        def on_tipo_changed(event):
-            global edit_mode
-            edit_mode  = True
-            lista.select_set(selecao[0]) # Garante que o mesmo item esteja selecionado
-            novo_tipo = event.widget.get()
-            servidores[nome_servidor] = estrutura_servidor[novo_tipo].copy() # Copia a estrutura do novo tipo
-            atualizar_campos(edit_mode=True)
 
         # Cria todos os campos de parâmetros dinamicamente
         for param, value in servidor_selecionado.items():
@@ -108,21 +109,18 @@ def configurar_servidores(projeto):
                 # Adiciona as portas seriais de acordo com o sistema operacional
                 if param == 'Porta Serial':
                     portas = list(serial.tools.list_ports.comports())
-                    entry = ttk.Combobox(frame_temp, values=portas, width=17, state='readonly')
+                    entry = ttk.Combobox(frame_temp, values=portas, width=17)
                 else:
-                    entry = ttk.Combobox(frame_temp, values=selecionaveis[param], width=17, state='readonly')
+                    entry = ttk.Combobox(frame_temp, values=selecionaveis[param], width=17)
+                    if param == 'Conexão':
+                        entry.bind("<<ComboboxSelected>>", lambda e:on_tipo_change(e, selecao))
                 entry.set(value)
-                # Cria o bind para lidar com a mudança de tipo
-                if param == 'Conexão':
-                    entry.bind('<<ComboboxSelected>>', on_tipo_changed)
             else:
-                entry = ttk.Entry(frame_temp, width=20, state='normal')
+                entry = ttk.Entry(frame_temp, width=20)
                 entry.insert(0, value)
-
+            # Desabilita os campos por padrão
             if entry:
-                # Desabilita o campo se não estiver em modo de edição
-                if not edit_mode:
-                    entry.config(state='disabled')
+                entry.config(state='disabled')
                 entry.pack(side='right')
 
     # Exibe o primeiro item da lista ao abrir a janela

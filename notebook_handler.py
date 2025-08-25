@@ -9,13 +9,12 @@ from PIL import Image, ImageTk
 # Imports do projeto
 import custom_widgets as cw
 import widget_manager as wm
-import utils as ut
 
 ########## Criar um projeto/aba ##########
 class Notebook:
     def __init__(self, root):
         self.notebook = ttk.Notebook(root)
-        self.notebook.pack(side='bottom',fill='both')
+        self.notebook.pack(side='bottom',fill='both', expand=True)
     
     def add_aba(self, projeto, x=None, y=None):
         # Menu de contexto
@@ -55,7 +54,7 @@ class Notebook:
         index = self.notebook.select()
         nome_aba = self.notebook.tab(index, 'text')
         novo_nome = cw.perguntarTexto('Novo nome', 'Insira o novo nome da aba')
-        operacao = projeto.mudar_nome_aba(nome_aba, novo_nome)
+        operacao = projeto.novoNome_aba(nome_aba, novo_nome)
         if operacao:
             self.notebook.tab(index, text=novo_nome)
             projeto.dados['notebook'][novo_nome] = projeto.dados['notebook'].pop(nome_aba)
@@ -93,8 +92,8 @@ class Notebook:
             y = y.get()
             canvas.config(width=x, height=y)
             nome_aba = self.notebook.tab(self.notebook.select(), 'text')
-            projeto.editar_aba(nome_aba, 'x', x)
-            projeto.editar_aba(nome_aba, 'y', y)
+            projeto.config_aba(nome_aba, 'x', x)
+            projeto.config_aba(nome_aba, 'y', y)
 
     ########## Inserir imagem no canvas ##########
     def inserir_imagem(self, projeto, canvas):
@@ -104,6 +103,6 @@ class Notebook:
         )
         if not caminho_imagem:
             return
-        projeto.editar_aba(self.notebook.tab(self.notebook.select(), 'text'), 'imagem', caminho_imagem)
+        projeto.config_aba(self.notebook.tab(self.notebook.select(), 'text'), 'imagem', caminho_imagem)
         canvas.image_ref = ImageTk.PhotoImage(Image.open(caminho_imagem))
         canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor='center', image=canvas.image_ref)
