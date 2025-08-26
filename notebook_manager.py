@@ -1,5 +1,6 @@
 ########### Preâmbulo ###########
 # Imports do python
+import tkinter as tk
 from tkinter import ttk
 from tktooltip import ToolTip
 
@@ -37,7 +38,7 @@ def novo_projeto(root, nome=None):
             'icone': 'conectar.png',
         },
         'Inserir Widget': {
-            'command': lambda :wm.adicionar_widget(projeto),
+            'command': lambda:wm.adicionar_widget(projeto),
             'icone': 'widget.png',
         },
         'Tela Cheia':{

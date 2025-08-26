@@ -13,17 +13,17 @@ def imagem(nome, tamanho_icone=None):
     return image
 
 def preferencias(style):
-    def aplicar():
-        style.theme_use(tema_sel.get())
-
     # Cria a janela de propriedades
-    janela = cw.janelaScroll('Preferencias', geometry=(300,200), resizable=(False, False), command=lambda:aplicar)
+    janela = cw.janelaScroll('Preferencias', geometry=(300,200), resizable=(False, False), command=lambda:aplicar())
 
     ttk.Label(janela, text='Tema').pack(padx=5, pady=2, side='left')
     temas = list(style.theme_names())
     tema_sel = ttk.Combobox(janela, values=temas, state='readonly', width=10)
     tema_sel.pack(padx=5, pady=2, side='right')
     tema_sel.current(temas.index(style.theme_use()))
+
+    def aplicar():
+        style.theme_use(tema_sel.get())
 
 def tela_cheia():
     root = tk._default_root

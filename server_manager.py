@@ -89,7 +89,6 @@ def configurar_servidores(projeto):
 
         # Cria todos os campos de parâmetros dinamicamente
         for param, value in servidor_selecionado.modbus.items():
-            print(param, value)
             # Cria um frame temporário simplesmente pra organizar os campos
             frame_temp = ttk.Frame(frame_parametros)
             frame_temp.pack(fill='x', pady=2, padx=2)
