@@ -37,7 +37,7 @@ def novo_projeto(root, nome=None):
             'command': lambda:sm.conectar_servidores(projeto),
             'icone': 'conectar.png',
         },
-        'Inserir Widget': {
+        'Adicionar Widget': {
             'command': lambda:wm.adicionar_widget(projeto),
             'icone': 'widget.png',
         },
@@ -56,3 +56,6 @@ def novo_projeto(root, nome=None):
         )
         bt.pack(side='left', padx=1, pady=2)
         ToolTip(bt, msg=nome_botao)
+
+    # Cria um texto de suporte
+    ttk.Label(barra_ferramentas, text='Nenhuma Atividade').pack(side='right', padx=5)

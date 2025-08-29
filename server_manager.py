@@ -26,7 +26,7 @@ estrutura_servidor = {
     'RTU': {'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
 }
 
-# Dicionário para salvar os widgets das imagens
+# Dicionário para salvar os icones das imagens
 imagens = {}
 
 def configurar_servidores(projeto):
@@ -47,7 +47,9 @@ def configurar_servidores(projeto):
     frame_serv_bt.pack(anchor='w', fill='x', padx=2, pady=2)
     # Lista com os botões
     btns = {
-        'Adicionar': {'command': lambda: adicionar_servidor(), 'image': 'add.png'},
+        'Adicionar TCP': {'command': lambda: adicionar_servidor('TCP'), 'image': 'tcp.png'},
+        'Adicionar RTU': {'command': lambda: adicionar_servidor('RTU'), 'image': 'rtu.png'},
+        'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
         'Mudar Nome': {'command': lambda: mudar_nome(), 'image': 'edit.png'},
         'Editar': {'command': lambda: editar_servidor(), 'image': 'config.png'},
         'Salvar': {'command': lambda: salvar_servidor(), 'image': 'save.png'},
@@ -111,20 +113,12 @@ def configurar_servidores(projeto):
                 entry.config(state='disabled')
                 entry.pack(side='right')
 
-    def adicionar_servidor():
-        janela = cw.janelaScroll('Adicionar Servidor', geometry=(200, 200), resizable=(False, False), scrollbar=False, command=lambda:aplicar(nome, conexao))
-        ttk.Label(janela, text='Insira o nome do servidor').pack(pady=5)
-        nome = ttk.Entry(janela, width=20)
-        nome.pack(pady=5)
-        ttk.Label(janela, text='Selecione o tipo de conexão').pack(pady=5)
-        conexao = ttk.Combobox(janela, values=['TCP', 'RTU'], width=17, state='readonly')
-        conexao.pack(pady=5)
-        def aplicar(nome, conexao):
-            nome = nome.get()
-            conexao = conexao.get()
+    def adicionar_servidor(tipo):
+        nome = cw.perguntarTexto('Nome', 'Insira o nome do servidor')
+        def aplicar(nome, tipo):
             if nome != ''and nome not in projeto.servidores:
-                if conexao:
-                    projeto.add_servidor(nome, conexao, estrutura_servidor[conexao].copy())
+                if tipo:
+                    projeto.add_servidor(nome, tipo, estrutura_servidor[tipo].copy())
                 else:
                     messagebox.showwarning('Erro', 'Selecione uma conexão')
                     return
@@ -135,6 +129,7 @@ def configurar_servidores(projeto):
                 editar_servidor()
             else:
                 messagebox.showwarning('Erro', 'Nome de servidor inválido')
+        aplicar(nome, tipo)
 
     def salvar_servidor():
         selecao = lista.curselection()

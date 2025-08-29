@@ -4,6 +4,53 @@ from tkinter import ttk
 import custom_widgets as cw
 from PIL import Image, ImageTk
 
+widgets_padrao = {
+    'Texto': {
+        'classe': 'Label',
+        'propriedades': {
+            'text': 'Texto',
+            'image': '',
+        }
+    },
+    'Botão': {
+        'classe': 'Button',
+        'função': '',
+        'propriedades': {
+            'text': 'Botão',
+            'width': 5,
+            'image': '',
+        }
+    },
+    'Indicador': {
+        'classe': 'Label',
+        'função': '',
+        'propriedades': {
+            'text': '0.00',
+        }
+    },
+    'Slider': {
+        'classe': 'Scale',
+        'função': '',
+        'propriedades': {
+            'from_': 0,
+            'to': 100,
+            'orient': 'horizontal',
+            'length': 100,
+        }
+    },
+}
+
+def dica(texto):
+    # Encontra a barra de ferrementas do projeto principal
+    barra_ferramentas = None
+    for widget in tk._default_root.winfo_children():
+        if widget.winfo_class() == 'TLabelframe':
+            barra_ferramentas = widget
+    # Verifica se o label já existe
+    for widget in barra_ferramentas.winfo_children():
+        if widget.winfo_class() == 'TLabel':
+            widget.config(text=texto)
+
 def imagem(nome, tamanho_icone=None):
     caminho_icone = os.path.join(os.path.dirname(__file__), 'assets', nome)
     image = Image.open(caminho_icone)

@@ -6,6 +6,7 @@ from PIL import ImageTk, Image
 from tkinter import messagebox, filedialog
 
 # Imports do projeto
+import widget_manager as wm
 import server_handler as sh
 import custom_widgets as cw
 
@@ -35,7 +36,33 @@ class Projeto:
 
     # Função auxiliar
     def exibir(self):
-        None
+        print("\n" + "#"*30 + " ESTADO ATUAL DO PROJETO " + "#"*30)
+
+        # Abas
+        if self.abas:
+            print("\n>>> ABAS:")
+            for nome, aba in self.abas.items():
+                print(f"  - {nome}: {aba.x}x{aba.y}, img='{aba.imagem}'")
+                if aba.widgets:
+                    print(f"    Widgets:")
+                    for wid, widget in aba.widgets.items():
+                        classe = widget.classe.__name__
+                        props = widget.propriedades if widget.propriedades else "{}"
+                        print(f"      • ID={wid} | Classe={classe} | Pos=({widget.x},{widget.y}) | Props={props}")
+                else:
+                    print("    (sem widgets)")
+        else:
+            print("\n>>> Nenhuma aba adicionada.")
+
+        # Servidores
+        if self.servidores:
+            print("\n>>> SERVIDORES:")
+            for nome, servidor in self.servidores.items():
+                print(f"  - {nome}: configs={getattr(servidor, 'modbus', {})}")
+        else:
+            print("\n>>> Nenhum servidor adicionado.")
+
+        print("#"*85 + "\n")        
 
     #################### Trabalhando com as abas do Notebook ####################
 
@@ -172,6 +199,7 @@ class Projeto:
         def menuContexto_widget(event, wid):
             context_menu = tk.Menu(canvas_atual, tearoff=0)
             context_menu.add_command(label='Mover', command=lambda:self.mover_widget(wid))
+            context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades_widget(self, wid))
             context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
         # Encontra aba atual
@@ -188,10 +216,15 @@ class Projeto:
         # Salva no projeto
         self.abas[nome_aba].widgets[widget.id] = widget
         self.exibir()
+        return widget.id
 
-    def config_widget(self, nome_aba, nome_widget, config, novo_valor):
-        widget = self.abas[nome_aba].widgets[nome_widget]
-        widget.propriedades[config] = novo_valor
+    def config_widget(self, wid, prop, novo_valor):
+        index = self.notebook.select()
+        nome_aba = self.notebook.tab(index, 'text')
+        canvas_atual = self.abas[nome_aba].canvas
+        widget = canvas_atual.nametowidget(canvas_atual.itemcget(wid, 'window'))
+        widget = self.abas[nome_aba].widgets[wid]
+        widget.propriedades[prop] = novo_valor
         self.exibir()
     
     def mover_widget(self, wid):
@@ -221,6 +254,7 @@ class Projeto:
             canvas_atual.unbind('<Motion>')
             canvas_atual.unbind('<ButtonRelease-1>')
             canvas_atual._drag_data = {}
+            self.exibir()
 
         # espera o clique esquerdo pra começar arrastar
         canvas_atual.bind('<Button-1>', iniciar)
@@ -232,3 +266,4 @@ class Projeto:
         widget = canvas_atual.nametowidget(canvas_atual.itemcget(wid, 'window'))
         widget.destroy()
         canvas_atual.delete(wid)
+        self.exibir()

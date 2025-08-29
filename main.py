@@ -41,10 +41,11 @@ menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(style))
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
+##########  ##########
 # Espaçamento em cima
 ttk.Label(root).pack(side='top', fill='both', expand=True)
 
-frame_central = ttk.Frame(root, relief='raised', borderwidth=1)
+frame_central = ttk.Frame(root, relief='raised', borderwidth=2)
 frame_central.pack(expand=True, padx=20, pady=20)
 
 # Configuração do grid

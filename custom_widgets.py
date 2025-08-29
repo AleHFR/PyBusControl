@@ -30,8 +30,8 @@ def perguntarTexto(title, text, default_text=None):
     janela.wait_window()
     return texto_entrada.get()
 
-def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=None):
-    # Cria a janela de propriedades
+def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=None, buttonName = None, closeWindow = True):
+    # Cria a janela
     janela = tk.Toplevel()
     janela.title(title)
     if geometry:
@@ -42,7 +42,7 @@ def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=N
     # Botão de aplicar
     frame_botao = ttk.Frame(janela)
     frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text='Ok', command=lambda:ok()).pack(pady=2)
+    ttk.Button(frame_botao, text=buttonName if buttonName else 'Ok', command=lambda:ok()).pack(pady=2)
 
     # Canvas e frame interno
     canvas_interno = tk.Canvas(janela)
@@ -64,9 +64,8 @@ def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=N
     canvas_interno.bind('<Configure>', ajustar_largura_frame)
 
     def ok():
-        if command:
-            command()
-        janela.destroy()
+        if command:command()
+        if closeWindow:janela.destroy()
 
     return frame_interno
 
