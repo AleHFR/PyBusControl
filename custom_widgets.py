@@ -43,7 +43,7 @@ def ask_yes_no(title: str, message: str) -> bool:
     
     return result
 
-def janelaScroll(title, geometry=None, resizable=None, button_set=True, command=None, buttonName = None, closeWindow = True):
+def janelaScroll(title, geometry=None, resizable=None, scrollbar=None, button_set=True, command=None, buttonName = None, closeWindow = True):
     # Cria a janela
     janela = ctk.CTkToplevel() # Usa a raiz padrão do CustomTkinter
     janela.title(title)
@@ -73,7 +73,9 @@ def janelaScroll(title, geometry=None, resizable=None, button_set=True, command=
             command=ok
         ).pack()
 
-    frame_interno = ctk.CTkScrollableFrame(janela, label_text="")
+    frame_interno = None
+    if scrollbar:frame_interno = ctk.CTkScrollableFrame(janela, label_text="")
+    else:frame_interno = ctk.CTkFrame(janela)
     frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
 
     return frame_interno

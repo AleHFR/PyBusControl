@@ -76,11 +76,12 @@ def novo_projeto(root, nome=None):
 
     # Adiciona umas coias para testes
     projeto.add_servidor('Esp32', 'TCP', {'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
-    projeto.add_servidor('Esp33', 'TCP', {'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
+    projeto.add_servidor('ArdUNO', 'RTU', {'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1})
 
 def add_aba(projeto):
     nome = ctk.CTkInputDialog(text='Nova Aba:', title='Insira o nome da aba').get_input()
-    projeto.add_aba(nome)
+    if nome != '' and nome not in projeto.abas.keys():
+        projeto.add_aba(nome)
 
 def config_aba(projeto):
     # Verifica se tem ao menos uma aba aberta

@@ -31,7 +31,7 @@ imagens = {}
 
 def configurar_servidores(projeto):
     # Cria a janela
-    janela = cw.janelaScroll('Conexão Modbus', geometry=(300, 300), button_set=False)
+    janela = cw.janelaScroll('Conexão Modbus', geometry=(500, 400), button_set=False, scrollbar=False, resizable=(False, False))
 
     # Pega os servidores existentes
     servidores = projeto.servidores
@@ -71,7 +71,7 @@ def configurar_servidores(projeto):
     # Frame para os parâmetros
     frame_parametros = ctk.CTkFrame(janela)
     frame_parametros.pack(side='right', fill='both', expand=True, padx=5, pady=5)
-    ctk.CTkLabel(frame_parametros, text='Parâmetros', text_color='black').pack(pady=5, fill='x', anchor='nw')
+    ctk.CTkLabel(frame_parametros, text='Parâmetros').pack(pady=5, fill='x', anchor='nw')
 
     # Função para atualizar os parâmetros de acordo com o servidor selecionado
     def atualizar_campos(server):
@@ -94,6 +94,7 @@ def configurar_servidores(projeto):
             # Cria um frame temporário simplesmente pra organizar os campos
             frame_temp = ctk.CTkFrame(frame_parametros)
             frame_temp.pack(fill='x', pady=2, padx=2)
+            frame_temp.configure(fg_color=frame_parametros.cget('fg_color'))
             ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             # Cria as combobox de acordo com o parâmetro
             entry = None
@@ -133,6 +134,10 @@ def configurar_servidores(projeto):
     # Função para mudar o nome de um servidor
     def mudar_nome():
         nonlocal servidor_selecionado
+        # Verifica se tem algum servidor selecionado
+        if not servidor_selecionado:
+            return
+        
         novo_nome = ctk.CTkInputDialog(text='Novo nome:', title='Insira o novo nome do servidor').get_input()
         # Verifica se o novo nome é válido
         if novo_nome and novo_nome != servidor_selecionado.nome and novo_nome not in projeto.servidores:
@@ -145,6 +150,11 @@ def configurar_servidores(projeto):
 
     # Função para editar um servidor
     def editar_servidor():
+        nonlocal servidor_selecionado
+        # Verifica se tem algum servidor selecionado
+        if not servidor_selecionado:
+            return
+        
         # Procura os campos e os habilita
         for frame in frame_parametros.winfo_children():
             widget = frame.winfo_children()[1] # O segundo widget é sempre o de entrada
@@ -177,6 +187,11 @@ def configurar_servidores(projeto):
     # Função para remover um servidor
     def remover_servidor():
         nonlocal servidor_selecionado
+        # Verifica se tem algum servidor selecionado
+        if not servidor_selecionado:
+            return
+        
+        # Remove o servidor
         if servidor_selecionado:
             nome_servidor = servidor_selecionado.nome
             if cw.ask_yes_no('Remover Servidor', f'Deseja remover o servidor {nome_servidor}?') == 'Remover':

@@ -10,7 +10,6 @@ widgets_padrao = {
         'classe': 'CTkLabel',
         'propriedades': {
             'text': 'Texto',
-            'textvariable': None,
             'font': None,
             'text_color': None,
             'fg_color': 'transparent',
@@ -27,9 +26,7 @@ widgets_padrao = {
         'funcao': None, # Usado para armazenar a função do comando
         'propriedades': {
             'text': 'Botão',
-            'textvariable': None,
             'font': None,
-            'command': None,
             'state': 'normal',
             'width': 140,
             'height': 28,
@@ -50,7 +47,6 @@ widgets_padrao = {
         'classe': 'CTkLabel',
         'propriedades': {
             'text': '0.00',
-            'textvariable': None,
             'font': ('Arial', 14, 'bold'),
             'text_color': None,
             'fg_color': 'transparent',
@@ -70,9 +66,6 @@ widgets_padrao = {
             'orientation': 'horizontal',
             'width': 200,
             'height': 16,
-            'variable': None,
-            'command': None,
-            'state': 'normal',
             'fg_color': None,
             'progress_color': None,
             'button_color': None,
@@ -87,8 +80,6 @@ widgets_padrao = {
             'variable': None,
             'onvalue': 1,
             'offvalue': 0,
-            'command': None,
-            'state': 'normal',
             'font': None,
             'width': 0,
             'height': 0,
@@ -100,7 +91,7 @@ widgets_padrao = {
             'text_color': None
         }
     },
-    'Interruptor (Switch)': {
+    'Interruptor': {
         'classe': 'CTkSwitch',
         'funcao': None, # Usado para armazenar a função do comando
         'propriedades': {
@@ -125,7 +116,7 @@ widgets_padrao = {
     },
 }
 
-def dica(texto=None):
+def dica(texto:str=None):
     # Encontra a barra de ferrementas do projeto principal
     barra_ferramentas = None
     for widget in tk._default_root.winfo_children():
@@ -145,7 +136,7 @@ def imagem(nome, tamanho_icone=None):
     image = ImageTk.PhotoImage(image)
     return image
 
-def preferencias(root_window): # Passe a janela principal como argumento
+def preferencias(): # Passe a janela principal como argumento
     # 1. Cria a janela Toplevel (janela secundária)
     janela = cw.janelaScroll('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
 

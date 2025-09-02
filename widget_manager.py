@@ -1,5 +1,6 @@
 ########### Preâmbulo ###########
 # Imports do python
+import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
 from tkinter import messagebox
@@ -35,19 +36,25 @@ def adicionar_widget(projeto):
         marcador = canvas_atual.create_oval(x-r, y-r, x+r, y+r, outline="red", width=2)
 
         # Depois de criar o widget, remove o marcador, muda o cursor e chama a janela de configuração
-        def ok():
+        def ok(tipo):
             canvas_atual.delete(marcador)
-            classe = ut.widgets_padrao[combobox_classe.get()]['classe']
-            propriedades = ut.widgets_padrao[combobox_classe.get()]['propriedades']
+            classe = ut.widgets_padrao[tipo]['classe']
+            propriedades = ut.widgets_padrao[tipo]['propriedades']
             widget = projeto.add_widget(classe, propriedades, x, y)
             propriedades_widget(widget)
 
         # criar o widget:
-        janela = cw.janelaScroll('Adicionar widget', geometry=(150, 100), resizable=(False, False), command=lambda:ok())
-        ttk.Label(janela, text='Selecione a classe do widget').pack(pady=5)
-        combobox_classe = ttk.Combobox(janela, values=list(ut.widgets_padrao.keys()), width=17, state='readonly')
-        combobox_classe.pack(pady=5)
-        combobox_classe.current(0) # Seleciona a primeira opção por padrão
+        context_menu = tk.Menu(canvas_atual,
+                               bg=ctk.ThemeManager.theme["CTkButton"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["fg_color"][1],
+                               fg=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
+                               activebackground=ctk.ThemeManager.theme["CTkButton"]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["hover_color"][1],
+                               activeforeground=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
+                               tearoff=0)
+        for tipo in ut.widgets_padrao.keys():
+            context_menu.add_command(label=tipo, command=lambda t=tipo:ok(t))
+        context_menu.post(event.x_root, event.y_root)
+        context_menu.config()
+
         # Desabilita o bind
         canvas_atual.unbind("<Button-1>")
         
@@ -59,7 +66,7 @@ def adicionar_widget(projeto):
 
 def propriedades_widget(widget):
     # Cria a janela
-    janela = cw.janelaScroll('Configurar Widgets', geometry=(220, 220), resizable=(False, False), scrollbar=False)
+    janela = cw.janelaScroll('Configurar Widgets', geometry=(450, 400), resizable=(False, False), scrollbar=False)
     # Frame para os botões
     frame_serv_bt = ttk.LabelFrame(janela, text="Configuração")
     frame_serv_bt.pack(side='top', fill='x', padx=2, pady=2)
@@ -71,7 +78,7 @@ def propriedades_widget(widget):
     # Adiciona os botoes ao frame
     for key, value in btns.items():
         imagens[key] = ut.imagem(value['image'], (15, 15))
-        bt = ttk.Button(frame_serv_bt, command=value['command'], image=imagens[key])
+        bt = ctk.CTkButton(frame_serv_bt, command=value['command'], image=imagens[key])
         bt.pack(side='left', padx=2, pady=2)
         ToolTip(bt, msg=key)
 
@@ -82,7 +89,7 @@ def propriedades_widget(widget):
     # Cria todos os campos de parâmetros dinamicamente
     for param, value in widget.propriedades.items():
         # Cria um frame temporário simplesmente pra organizar os campos
-        frame_temp = ttk.Frame(frame_propriedades)
+        frame_temp = ctk.CTkFrame(frame_propriedades)
         frame_temp.pack(fill='x', pady=2, padx=2)
         ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
         # Cria as entrys de acordo com a propriedade
@@ -104,7 +111,7 @@ def propriedades_widget(widget):
         # Procura os campos
         for frame in frame_propriedades.winfo_children():
             entry = frame.winfo_children()[1] # O segundo entry é sempre o de entrada
-            if isinstance(entry, ttk.Entry):
+            if isinstance(entry, ctk.CTkEntry):
                 entry.config(state='normal')
                 # Se o frame tiver um botão de busca, habilita ele
                 if len(frame.winfo_children()) > 2:

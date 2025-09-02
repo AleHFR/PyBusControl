@@ -6,7 +6,6 @@ import platform
 
 # Imports do projeto
 import notebook_manager as nm
-import file_handler as fh
 import utils as ut
 
 ########## Janela principal ##########
@@ -34,7 +33,6 @@ root.config(menu=menu_bar)
 menu_arquivo = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:nm.novo_projeto(root))
-menu_arquivo.add_command(label="Carregar Projeto", command=lambda:fh.carregar_projeto(root))
 menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(root))
 menu_arquivo.add_command(label="Sair", command=root.quit)
@@ -56,7 +54,6 @@ frame_btn = ctk.CTkFrame(frame_central, fg_color='#FFFFFF', corner_radius=0)
 frame_btn.grid(row=0, column=0, padx=20, pady=20, sticky='ns')
 
 ctk.CTkButton(frame_btn, text='Novo Projeto', command=lambda:nm.novo_projeto(root)).pack(pady=5, fill='x')
-ctk.CTkButton(frame_btn, text='Carregar Projeto', command=lambda:fh.carregar_projeto(root)).pack(pady=5, fill='x')
 
 # Coluna da direita (arquivos recentes)
 frame_arquivos = ctk.CTkFrame(frame_central, fg_color='#FFFFFF', corner_radius=0)
