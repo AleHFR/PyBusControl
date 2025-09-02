@@ -1,7 +1,7 @@
 ########### Preâmbulo ###########
 # Imports do python
 import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 import platform
 
 # Imports do projeto
@@ -10,26 +10,24 @@ import file_handler as fh
 import utils as ut
 
 ########## Janela principal ##########
-root = tk.Tk()
+root = ctk.CTk()
 root.title('PyBusControl')
-root.bind()
+ctk.set_appearance_mode('light')
 # Icone
 root.iconphoto(True, ut.imagem('pbc.png'))
-# Conjunto de Styles padrão
-style = ttk.Style(root)
+# Estilo
+# style = ttk.Style(root)
 
 ########## Configura conforme o sistema operacional ##########
-if platform.system() == 'Windows':
-    from ctypes import windll
-    windll.shcore.SetProcessDpiAwareness(1)
-    root.state('zoomed') # inicia a janela em tela cheia
-    style.theme_use('vista') # Escolhe o melhor tema para o Windows
-elif platform.system() == 'Linux':
-    root.attributes('-zoomed', True) # inicia a janela em tela cheia
-    style.theme_use('default') # Escolhe o melhor tema para o Linux
+def maximizar_janela():
+    system = platform.system()
+    if system == "Windows":
+        root.state('zoomed')
+    else: # Funciona para Linux e macOS
+        root.attributes('-zoomed', True)
 
 ########## Menu ##########
-menu_bar = tk.Menu(root, tearoff=0)
+menu_bar = tk.Menu(root, tearoff=0, )
 root.config(menu=menu_bar)
 
 # Criar um menu de arquivo
@@ -38,14 +36,14 @@ menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:nm.novo_projeto(root))
 menu_arquivo.add_command(label="Carregar Projeto", command=lambda:fh.carregar_projeto(root))
 menu_arquivo.add_separator()
-menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(style))
+menu_arquivo.add_command(label="Preferências", command=lambda:ut.preferencias(root))
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
 ##########  ##########
 # Espaçamento em cima
-ttk.Label(root).pack(side='top', fill='both', expand=True)
+ctk.CTkLabel(root, text='').pack(side='top', fill='both', expand=True)
 
-frame_central = ttk.Frame(root, relief='raised', borderwidth=2)
+frame_central = ctk.CTkFrame(root, fg_color='#FFFFFF', corner_radius=5)
 frame_central.pack(expand=True, padx=20, pady=20)
 
 # Configuração do grid
@@ -54,20 +52,24 @@ frame_central.columnconfigure(1, weight=2)
 frame_central.rowconfigure(0, weight=1)
 
 # Coluna da esquerda (botões)
-frame_btn = ttk.Frame(frame_central)
+frame_btn = ctk.CTkFrame(frame_central, fg_color='#FFFFFF', corner_radius=0)
 frame_btn.grid(row=0, column=0, padx=20, pady=20, sticky='ns')
 
-ttk.Button(frame_btn, text='Novo Projeto', command=lambda:nm.novo_projeto(root)).pack(pady=5, fill='x')
-ttk.Button(frame_btn, text='Carregar Projeto', command=lambda:fh.carregar_projeto(root)).pack(pady=5, fill='x')
+ctk.CTkButton(frame_btn, text='Novo Projeto', command=lambda:nm.novo_projeto(root)).pack(pady=5, fill='x')
+ctk.CTkButton(frame_btn, text='Carregar Projeto', command=lambda:fh.carregar_projeto(root)).pack(pady=5, fill='x')
 
 # Coluna da direita (arquivos recentes)
-frame_arquivos = ttk.LabelFrame(frame_central, text='Arquivos recentes')
-frame_arquivos.grid(row=0, column=1, padx=20, pady=20, sticky='nsew')
+frame_arquivos = ctk.CTkFrame(frame_central, fg_color='#FFFFFF', corner_radius=0)
+ctk.CTkLabel(frame_arquivos, text='Arquivos Recentes', text_color='black').pack(pady=5, fill='x', anchor='nw')
+frame_arquivos.grid(row=0, column=1, padx=20, pady=20)
 
-lista = tk.Listbox(frame_arquivos, width=30, height=10, exportselection=False)
-lista.pack(fill='both', expand=True)
+lista = ctk.CTkTextbox(frame_arquivos, width=200, height=200, exportselection=False)
+lista.configure(state='disabled')
+lista.pack(fill='both', expand=True, padx=5, pady=5)
 
 # Espaçamento embaixo
-ttk.Label(root).pack(side='bottom', fill='both', expand=True)
+ctk.CTkLabel(root, text='').pack(side='bottom', fill='both', expand=True)
 
+# Deixa a tela maximizada
+root.after(5, maximizar_janela)
 root.mainloop()

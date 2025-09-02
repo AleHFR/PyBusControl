@@ -1,71 +1,80 @@
 import tkinter as tk
 from tkinter import ttk
+import customtkinter as ctk
 
 #arrumar
-def perguntarTexto(title, text, default_text=None):
-    # Cria a janela
-    janela = tk.Toplevel()
-    janela.title(title)
-    janela.resizable(False, False)
-
-    # Variável de controle para guardar o texto
-    texto_entrada = tk.StringVar(value=default_text if default_text else '')
+def ask_yes_no(title: str, message: str) -> bool:
+    dialog = ctk.CTkToplevel()
+    dialog.title(title)
+    dialog.geometry("350x180")
+    dialog.resizable(False, False)
     
-    # Frame pra colocar os componentes
-    frame = ttk.Frame(janela)
-    frame.pack(padx=5, pady=5)
-    ttk.Label(frame, text=text).pack(padx=5, pady=5)
+    # Faz o diálogo ser modal
+    dialog.transient()
+    dialog.grab_set()
+
+    # Variável para armazenar o resultado
+    result = False
     
-    # Associar a entrada à variável de controle
-    entrada = ttk.Entry(frame, textvariable=texto_entrada, width=20)
-    entrada.pack(padx=5, pady=5)
+    def on_yes():
+        nonlocal result
+        result = True
+        dialog.destroy()
 
-    # Botão de aplicar
-    frame_botao = ttk.Frame(janela)
-    frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text='Ok', command=lambda:janela.destroy()).pack(pady=2)
-    entrada.focus_set()
+    def on_no():
+        nonlocal result
+        result = False
+        dialog.destroy()
 
-    # Espera a janela ser fechada pra retornar
-    janela.wait_window()
-    return texto_entrada.get()
+    label = ctk.CTkLabel(dialog, text=message, font=("", 14), wraplength=320)
+    label.pack(expand=True, fill="both", padx=20, pady=20)
 
-def janelaScroll(title, geometry=None, resizable=None, scrollbar=True, command=None, buttonName = None, closeWindow = True):
+    button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+    button_frame.pack(pady=(0,5))
+
+    yes_button = ctk.CTkButton(button_frame, text="Sim", command=on_yes, width=100)
+    yes_button.pack(side="left", padx=10)
+
+    no_button = ctk.CTkButton(button_frame, text="Não", command=on_no, width=100)
+    no_button.pack(side="left", padx=10)
+    
+    # Espera até que a janela de diálogo seja fechada (por um dos botões)
+    dialog.wait_window()
+    
+    return result
+
+def janelaScroll(title, geometry=None, resizable=None, button_set=True, command=None, buttonName = None, closeWindow = True):
     # Cria a janela
-    janela = tk.Toplevel()
+    janela = ctk.CTkToplevel() # Usa a raiz padrão do CustomTkinter
     janela.title(title)
+    janela.transient()
+    janela.grab_set()
+
     if geometry:
         janela.geometry(f'{geometry[0]}x{geometry[1]}')
     if resizable:
         janela.resizable(resizable[0], resizable[1])
-
-    # Botão de aplicar
-    frame_botao = ttk.Frame(janela)
-    frame_botao.pack(side='bottom')
-    ttk.Button(frame_botao, text=buttonName if buttonName else 'Ok', command=lambda:ok()).pack(pady=2)
-
-    # Canvas e frame interno
-    canvas_interno = tk.Canvas(janela)
-    if scrollbar:
-        scrollbar = ttk.Scrollbar(janela, orient="vertical", command=canvas_interno.yview)
-        canvas_interno.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
-    canvas_interno.pack(side="left", fill="both", expand=True)
-
-    frame_interno = ttk.Frame(canvas_interno)
-    frame_interno_id = canvas_interno.create_window((0, 0), window=frame_interno, anchor='nw')
-
-    def atualizar_scroll(event):
-        canvas_interno.configure(scrollregion=canvas_interno.bbox("all"))
-    frame_interno.bind("<Configure>", atualizar_scroll)
-
-    def ajustar_largura_frame(event):
-        canvas_interno.itemconfig(frame_interno_id, width=event.width)
-    canvas_interno.bind('<Configure>', ajustar_largura_frame)
+    else:
+        janela.resizable(True, True) # Padrão mais flexível
 
     def ok():
-        if command:command()
-        if closeWindow:janela.destroy()
+        if command:
+            command()
+        if closeWindow:
+            janela.destroy()
+
+    if button_set:
+        frame_botao = ctk.CTkFrame(janela, fg_color="transparent")
+        frame_botao.pack(side='bottom', fill='x', padx=10, pady=(5, 10))
+
+        ctk.CTkButton(
+            frame_botao,
+            text=buttonName if buttonName else 'Ok',
+            command=ok
+        ).pack()
+
+    frame_interno = ctk.CTkScrollableFrame(janela, label_text="")
+    frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
 
     return frame_interno
 

@@ -2,12 +2,12 @@
 # Imports do python
 import tkinter as tk
 from tkinter import ttk
+import customtkinter as ctk
 from tkinter import messagebox
 from tktooltip import ToolTip
 import serial.tools.list_ports
 
 # Imports do projeto
-import server_handler as mh
 import custom_widgets as cw
 import utils as ut
 
@@ -16,8 +16,8 @@ selecionaveis = {
     'Conexão': ['TCP', 'RTU'],
     'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
     'Paridade': ['N', 'P', 'I'],
-    'Bytesize': [8, 7],
-    'Stopbits': [1, 2]
+    'Bytesize': ['8', '7'],
+    'Stopbits': ['1', '2']
 }
 
 # Estruturas padrão para cada tipo de servidor
@@ -31,20 +31,19 @@ imagens = {}
 
 def configurar_servidores(projeto):
     # Cria a janela
-    janela = cw.janelaScroll('Conexão Modbus', geometry=(450, 400), resizable=(False, False), scrollbar=False)
-    
-    # Adiciona dados dos servidores
-    if not projeto.servidores:
-        projeto.add_servidor('Esp32', 'TCP', {'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
+    janela = cw.janelaScroll('Conexão Modbus', geometry=(300, 300), button_set=False)
+
+    # Pega os servidores existentes
     servidores = projeto.servidores
+    servidor_selecionado = None
 
     # Frame para os servidores
-    frame_servidores = ttk.LabelFrame(janela, text="Configurar Servidor")
-    frame_servidores.pack(side='left', anchor='n', fill='y', padx=5, pady=5)
+    frame_servidores = ctk.CTkFrame(janela, width=150)
+    frame_servidores.pack(side='left', fill='both', padx=5, pady=5)
     
     # Frame para os botões
-    frame_serv_bt = ttk.Frame(frame_servidores)
-    frame_serv_bt.pack(anchor='w', fill='x', padx=2, pady=2)
+    frame_bt = ctk.CTkFrame(frame_servidores)
+    frame_bt.pack(anchor='w', fill='x', padx=2, pady=2)
     # Lista com os botões
     btns = {
         'Adicionar TCP': {'command': lambda: adicionar_servidor('TCP'), 'image': 'tcp.png'},
@@ -58,87 +57,110 @@ def configurar_servidores(projeto):
     # Adiciona os botoes ao frame
     for key, value in btns.items():
         imagens[key] = ut.imagem(value['image'], (15, 15))
-        bt = ttk.Button(frame_serv_bt, command=value['command'], image=imagens[key])
-        if key == 'Remover': # Coloca o botão de remover longe dos demais
-            bt.pack(side='right', padx=2, pady=2)
-        else:
-            bt.pack(side='left', padx=2, pady=2)
+        bt = ctk.CTkButton(frame_bt,text='', width=0, fg_color='#FFFFFF', hover_color='gray', command=value['command'], image=imagens[key])
+        bt.pack(side='left', padx=2, pady=2)
         ToolTip(bt, msg=key)
+        
     # Lista para os servidores
-    lista = tk.Listbox(frame_servidores, height=20, width=30)
+    lista = ctk.CTkScrollableFrame(frame_servidores)
     lista.pack(fill='both', expand=True)
-    # Define o evento para chamar a atualização em modo de visualização
-    lista.bind('<<ListboxSelect>>', lambda e:atualizar_campos())
     # Coloca os servidores na lista
     for server in servidores.keys():
-        lista.insert('end', server)
+        ctk.CTkButton(master=lista, text=server, corner_radius=0, command=lambda s=server:atualizar_campos(s)).pack(fill='x')
 
     # Frame para os parâmetros
-    frame_parametros = ttk.LabelFrame(janela, text="Parâmetros")
+    frame_parametros = ctk.CTkFrame(janela)
     frame_parametros.pack(side='right', fill='both', expand=True, padx=5, pady=5)
+    ctk.CTkLabel(frame_parametros, text='Parâmetros', text_color='black').pack(pady=5, fill='x', anchor='nw')
 
     # Função para atualizar os parâmetros de acordo com o servidor selecionado
-    def atualizar_campos():
+    def atualizar_campos(server):
+        nonlocal servidor_selecionado
         # Verifica se tem algum servidor selecionado
-        selecao = lista.curselection()
-        if not selecao: return
-        nome_servidor = lista.get(selecao[0])
-        servidor_selecionado = servidores.get(nome_servidor)
-
+        servidor_selecionado = servidores.get(server)
+        for bt in lista.winfo_children():
+            if bt.cget('text') == servidor_selecionado.nome:
+                bt.configure(fg_color='lightblue',
+                             text_color='black')
+            else:
+                bt.configure(fg_color=ctk.CTkButton(frame_bt).cget('fg_color'),
+                             text_color=ctk.CTkButton(frame_bt).cget('text_color'))
         # Limpa todos os widgets antigos do frame de parâmetros
-        for widget in frame_parametros.winfo_children():
+        for widget in frame_parametros.winfo_children()[1:]:
             widget.destroy()
 
         # Cria todos os campos de parâmetros dinamicamente
         for param, value in servidor_selecionado.modbus.items():
             # Cria um frame temporário simplesmente pra organizar os campos
-            frame_temp = ttk.Frame(frame_parametros)
+            frame_temp = ctk.CTkFrame(frame_parametros)
             frame_temp.pack(fill='x', pady=2, padx=2)
-            ttk.Label(frame_temp, text=f'{param}:').pack(side='left')
+            ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             # Cria as combobox de acordo com o parâmetro
             entry = None
-            if param in selecionaveis.keys():
+            if param in selecionaveis.keys() or param == 'Porta Serial':
                 # Adiciona as portas seriais de acordo com o sistema operacional
                 if param == 'Porta Serial':
-                    portas = list(serial.tools.list_ports.comports())
-                    entry = ttk.Combobox(frame_temp, values=portas, width=17)
+                    portas = [p.device for p in serial.tools.list_ports.comports()]
+                    entry = ctk.CTkComboBox(frame_temp, values=portas, width=100)
                 else:
-                    entry = ttk.Combobox(frame_temp, values=selecionaveis[param], width=17)
+                    entry = ctk.CTkComboBox(frame_temp, values=selecionaveis[param], width=100)
                 entry.set(value)
             else:
-                entry = ttk.Entry(frame_temp, width=20)
+                entry = ctk.CTkEntry(frame_temp, width=100)
                 entry.insert(0, value)
             # Desabilita os campos por padrão
             if entry:
-                entry.config(state='disabled')
+                entry.configure(state='disabled')
                 entry.pack(side='right')
 
+    # Função para adicionar um novo servidor
     def adicionar_servidor(tipo):
-        nome = cw.perguntarTexto('Nome', 'Insira o nome do servidor')
-        def aplicar(nome, tipo):
+        nome = ctk.CTkInputDialog(text='Nome do Servidor:', title='Novo Servidor').get_input()
+        def aplicar(nome, tipo): # Função para criar um servidor usando as configs padrão
             if nome != ''and nome not in projeto.servidores:
                 if tipo:
                     projeto.add_servidor(nome, tipo, estrutura_servidor[tipo].copy())
                 else:
                     messagebox.showwarning('Erro', 'Selecione uma conexão')
                     return
-                lista.insert('end', nome)
-                lista.selection_clear(0, 'end')
-                lista.selection_set('end')
-                lista.event_generate("<<ListboxSelect>>")
+                # Adiciona o servidor à lista
+                ctk.CTkButton(master=lista, text=nome, corner_radius=0, command=lambda n=nome:atualizar_campos(n)).pack(fill='x')
                 editar_servidor()
             else:
                 messagebox.showwarning('Erro', 'Nome de servidor inválido')
         aplicar(nome, tipo)
 
+    # Função para mudar o nome de um servidor
+    def mudar_nome():
+        nonlocal servidor_selecionado
+        novo_nome = ctk.CTkInputDialog(text='Novo nome:', title='Insira o novo nome do servidor').get_input()
+        # Verifica se o novo nome é válido
+        if novo_nome and novo_nome != servidor_selecionado.nome and novo_nome not in projeto.servidores:
+            projeto.novoNome_servidor(servidor_selecionado.nome, novo_nome)
+            for bt in lista.winfo_children():
+                if bt.cget('text') == servidor_selecionado.nome:
+                    bt.configure(text=novo_nome)
+        else:
+            messagebox.showwarning('Erro', 'Nome inválido ou nome duplicado')
+
+    # Função para editar um servidor
+    def editar_servidor():
+        # Procura os campos e os habilita
+        for frame in frame_parametros.winfo_children():
+            widget = frame.winfo_children()[1] # O segundo widget é sempre o de entrada
+            if isinstance(widget, ctk.CTkEntry):
+                widget.configure(state='normal')
+            elif isinstance(widget, ctk.CTkComboBox):
+                widget.configure(state='readonly')
+
     def salvar_servidor():
-        selecao = lista.curselection()
+        nonlocal servidor_selecionado
         # Verifica se tem algum servidor selecionado
-        if not selecao:
+        if not servidor_selecionado:
             return
         
         # Usar a seleção atual
-        nome_servidor = lista.get(selecao[0])
+        nome_servidor = servidor_selecionado.nome
         # Pega a chave e valor
         for frame in frame_parametros.winfo_children():
             label_widget = frame.winfo_children()[0]
@@ -149,48 +171,24 @@ def configurar_servidores(projeto):
             # Atualiza o dicionário no projeto
             projeto.config_servidor(nome_servidor, chave, valor)
             # Desabilita o campo após salvar
-            entry_widget.config(state='disabled')
+            entry_widget.configure(state='disabled')
         projeto.exibir()
 
-    def mudar_nome():
-        selecao = lista.curselection()
-        if selecao:
-            nome_antigo = lista.get(selecao[0])
-            novo_nome = cw.perguntarTexto('Novo nome', 'Insira o novo nome do servidor', default_text=nome_antigo)
-            if novo_nome and novo_nome != nome_antigo and novo_nome not in projeto.servidores:
-                projeto.novoNome_servidor(nome_antigo, novo_nome)
-                projeto.exibir()
-                lista.delete(selecao[0])
-                lista.insert(selecao[0], novo_nome)
-                lista.selection_set(selecao[0])
-            else:
-                messagebox.showwarning('Erro', 'Nome inválido ou nome duplicado')
-
-    def editar_servidor():
-        for frame in frame_parametros.winfo_children():
-            widget = frame.winfo_children()[1] # O segundo widget é sempre o de entrada
-            if isinstance(widget, ttk.Entry):
-                widget.config(state='normal')
-            elif isinstance(widget, ttk.Combobox):
-                widget.config(state='readonly')
-
+    # Função para remover um servidor
     def remover_servidor():
-        selecao = lista.curselection()
-        if selecao:
-            if messagebox.askyesno('Confirmar', 'Deseja excluir o servidor?'):
-                nome_servidor = lista.get(selecao[0])
-                lista.delete(selecao[0])
+        nonlocal servidor_selecionado
+        if servidor_selecionado:
+            nome_servidor = servidor_selecionado.nome
+            if cw.ask_yes_no('Remover Servidor', f'Deseja remover o servidor {nome_servidor}?') == 'Remover':
+                for bt in lista.winfo_children():
+                    if bt.cget('text') == nome_servidor:
+                        bt.destroy()
                 projeto.del_servidor(nome_servidor)
-                projeto.exibir()
                 
-                for widget in frame_parametros.winfo_children():
+                for widget in frame_parametros.winfo_children()[1:]:
                     widget.destroy()
 
+# Função para conectar os servidores
 def conectar_servidores(projeto):
-    for server in projeto.servidores:
-        nome = server
-        conexao = projeto.servidores[server]['Conexão']
-        servidor = mh.Servidor(nome, conexao)
-        for key, value in projeto.servidores[server].items():
-            servidor.config(key, value)
-        servidor.conectar()
+    for server in projeto.servidores.keys():
+        projeto.conectar_servidor(server)
