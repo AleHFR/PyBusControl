@@ -70,8 +70,8 @@ def novo_projeto(root):
     ctk.CTkLabel(barra_ferramentas, text='Nenhuma Atividade').pack(side='right', padx=5)
 
     # Adiciona umas coias para testes
-    projeto.add_servidor('Esp32', 'TCP', {'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
-    projeto.add_servidor('ArdUNO', 'RTU', {'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1})
+    projeto.add_servidor('Esp32', 'TCP', {'ID':1, 'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
+    projeto.add_servidor('ArdUNO', 'RTU', {'ID':2, 'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1})
 
 def add_aba(projeto):
     nome = ctk.CTkInputDialog(text='Nova Aba:', title='Insira o nome da aba').get_input()
@@ -85,7 +85,7 @@ def config_aba(projeto):
         return
 
     # Cria a janela
-    janela = cw.janelaScroll('Configurar Aba', geometry=(300, 300), buttonName='Aplicar', closeWindow=False, command=lambda: aplicar())
+    janela = cw.customTopLevel('Configurar Aba', geometry=(300, 300), buttonName='Aplicar', closeWindow=False, command=lambda: aplicar())
     
     # Encontra a aba atual
     aba = projeto.notebook.select()
@@ -138,8 +138,9 @@ def config_aba(projeto):
             messagebox.showerror('Erro', 'Nenhuma aba existente')
             return
         # Exclui a aba de fato
-        projeto.del_aba()
-        janela.destroy()
+        if cw.customDialog(janela, 'Excluir aba', f'Deseja excluir a aba "{nome}"?'):
+            projeto.del_aba()
+            janela.destroy()
 
 def tela_cheia(root):
     is_fullscreen = root.attributes('-fullscreen')

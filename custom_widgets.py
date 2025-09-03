@@ -2,51 +2,115 @@ import os
 import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
-import custom_widgets as cw
 from PIL import Image, ImageTk
 
-#arrumar
-def ask_yes_no(title: str, message: str) -> bool:
-    dialog = ctk.CTkToplevel()
-    dialog.title(title)
-    dialog.geometry("350x180")
-    dialog.resizable(False, False)
-    
-    # Faz o diálogo ser modal
-    dialog.transient()
-    dialog.grab_set()
+class customSpinbox(ctk.CTkFrame):
+    def __init__(self, master, min_value=0, max_value=100, step=1, initial_value=0, width=100, **kwargs):
+        super().__init__(master, fg_color="transparent", width=width, **kwargs)
+        
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step = step
+        self.value = initial_value
+        
+        # Botão de decremento
+        self.decrement_button = ctk.CTkButton(self, text="-", width=15, command=self.decrement)
+        self.decrement_button.pack(side="left")
+        
+        # Entrada de texto para o valor
+        self.entry = ctk.CTkEntry(self, width=width-50)
+        self.entry.pack(side="left")
+        self.entry.insert(0, str(self.value))
+        
+        # Botão de incremento
+        self.increment_button = ctk.CTkButton(self, text="+", width=15, command=self.increment)
+        self.increment_button.pack(side="left")
+        
+    def increment(self):
+        try:
+            current_value = int(self.entry.get())
+            new_value = current_value + self.step
+            if new_value <= self.max_value:
+                self.value = new_value
+                self.entry.delete(0, ctk.END)
+                self.entry.insert(0, str(self.value))
+        except ValueError:
+            # Lida com o caso de entrada não-numérica
+            pass
 
-    # Variável para armazenar o resultado
-    result = False
-    
-    def on_yes():
-        nonlocal result
-        result = True
-        dialog.destroy()
+    def decrement(self):
+        try:
+            current_value = int(self.entry.get())
+            new_value = current_value - self.step
+            if new_value >= self.min_value:
+                self.value = new_value
+                self.entry.delete(0, ctk.END)
+                self.entry.insert(0, str(self.value))
+        except ValueError:
+            pass
 
-    def on_no():
-        nonlocal result
-        result = False
-        dialog.destroy()
+    def get(self):
+        try:
+            return int(self.entry.get())
+        except ValueError:
+            return None
 
-    label = ctk.CTkLabel(dialog, text=message, font=("", 14), wraplength=320)
-    label.pack(expand=True, fill="both", padx=20, pady=20)
+import customtkinter as ctk
 
-    button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-    button_frame.pack(pady=(0,5))
+class customDialog(ctk.CTkToplevel):
+    def __init__(self, root, title: str, message: str, **kwargs):
+        super().__init__(root, **kwargs)
+        self.geometry("300x150")
+        self.resizable(False, False)
+        self.title(title)
 
-    yes_button = ctk.CTkButton(button_frame, text="Sim", command=on_yes, width=100)
-    yes_button.pack(side="left", padx=10)
+        # Modal
+        self.transient(root)
+        self.grab_set()
 
-    no_button = ctk.CTkButton(button_frame, text="Não", command=on_no, width=100)
-    no_button.pack(side="left", padx=10)
-    
-    # Espera até que a janela de diálogo seja fechada (por um dos botões)
-    dialog.wait_window()
-    
-    return result
+        # Variáveis
+        self.message = message
+        self.result = False
 
-def janelaScroll(title, geometry=None, resizable=None, scrollbar=None, button_set=True, command=None, buttonName = None, closeWindow = True):
+        self._build_()
+
+    def _build_(self):
+        def on_yes(self):
+            self.result = True
+            self.destroy()
+
+        def on_no(self):
+            self.result = False
+            self.destroy()
+
+        label = ctk.CTkLabel(self, text=self.message, font=("", 14), wraplength=250)
+        label.pack(expand=True, fill="both", padx=20, pady=20)
+
+        button_frame = ctk.CTkFrame(self, fg_color="transparent")
+        button_frame.pack(pady=(0, 5))
+
+        yes_button = ctk.CTkButton(button_frame, text="Sim", command=lambda:on_yes(self), width=100)
+        yes_button.pack(side="left", padx=10)
+
+        no_button = ctk.CTkButton(button_frame, text="Não", command=lambda:on_no(self), width=100)
+        no_button.pack(side="left", padx=10)
+        
+        self.wait_window()
+        return self.result
+
+class customMenu(tk.Menu):
+    def __init__(self, root, **kwargs):
+        ref = "CTkButton"
+        bg = ctk.ThemeManager.theme[ref]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["fg_color"][1]
+        fg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
+        activebg = ctk.ThemeManager.theme[ref]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["hover_color"][1]
+        activefg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
+
+        super().__init__(root, tearoff=0, bg=bg, fg=fg,
+                         activebackground=activebg, activeforeground=activefg,
+                         **kwargs)
+
+def customTopLevel(title, geometry=None, resizable=None, scrollbar=True, button_set=True, command=None, buttonName = None, closeWindow = True):
     # Cria a janela
     janela = ctk.CTkToplevel() # Usa a raiz padrão do CustomTkinter
     janela.title(title)
@@ -72,7 +136,7 @@ def janelaScroll(title, geometry=None, resizable=None, scrollbar=None, button_se
 
         ctk.CTkButton(
             frame_botao,
-            text=buttonName if buttonName else 'Ok',
+            text=buttonName if buttonName else 'Aplicar',
             command=ok
         ).pack()
 
@@ -105,7 +169,7 @@ def imagem(nome, tamanho_icone=None):
 
 def preferencias(): # Passe a janela principal como argumento
     # 1. Cria a janela Toplevel (janela secundária)
-    janela = cw.janelaScroll('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
+    janela = customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
 
     # --- Frame para o Modo de Aparência (Light/Dark) ---
     frame_modo = ctk.CTkFrame(janela)

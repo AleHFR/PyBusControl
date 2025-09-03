@@ -35,21 +35,15 @@ def adicionar_widget(projeto):
         r = 5
         marcador = canvas_atual.create_oval(x-r, y-r, x+r, y+r, outline="black", width=2)
 
-        # Depois de criar o widget, remove o marcador, muda o cursor e chama a janela de configuração
+        # Cria o widget e remove o marcador
         def ok(tipo):
             canvas_atual.delete(marcador)
             classe = dt.widgets_padrao[tipo]['classe']
             propriedades = dt.widgets_padrao[tipo]['propriedades']
-            widget = projeto.add_widget(classe, propriedades, x, y)
-            visual_widget(widget)
+            projeto.add_widget(classe, propriedades, x, y)
 
-        # criar o widget:
-        context_menu = tk.Menu(canvas_atual,
-                               bg=ctk.ThemeManager.theme["CTkButton"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["fg_color"][1],
-                               fg=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
-                               activebackground=ctk.ThemeManager.theme["CTkButton"]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["hover_color"][1],
-                               activeforeground=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
-                               tearoff=0)
+        # Seleciona o widget
+        context_menu = cw.customMenu(canvas_atual)
         for tipo in dt.widgets_padrao.keys():
             context_menu.add_command(label=tipo, command=lambda t=tipo:ok(t))
         context_menu.post(event.x_root, event.y_root)
@@ -64,9 +58,12 @@ def adicionar_widget(projeto):
     cw.dica('Clique na tela para definir a localização do widget')
     canvas_atual.bind("<Button-1>", click)
 
-def visual_widget(widget):
+def visual_widget(projeto, wid):
+    # Encontra o Widget
+    nome_aba = projeto.notebook.tab(projeto.notebook.select(), 'text')
+    widget = projeto.abas[nome_aba]['widgets'][wid]
     # Cria a janela
-    janela = cw.janelaScroll('Configurar Visual', geometry=(450, 400), resizable=(False, False), buttonName='Aplicar', command=lambda:salvar_widget(), closeWindow=False)
+    janela = cw.customTopLevel('Configurar Visual', geometry=(450, 400), resizable=(False, False), command=lambda:salvar_widget(), closeWindow=False)
 
     def escolher_cor(entry_widget):
         cor = AskColor().get()
@@ -79,7 +76,7 @@ def visual_widget(widget):
         entry_widget.insert(0, caminho_imagem)
 
     # Cria todos os campos de parâmetros dinamicamente
-    for param, value in widget.propriedades.items():
+    for param, value in widget['propriedades'].items():
         # Cria um frame temporário simplesmente pra organizar os campos
         frame_temp = ctk.CTkFrame(janela, fg_color='transparent')
         frame_temp.pack(fill='x', pady=2, padx=2)
@@ -99,9 +96,9 @@ def visual_widget(widget):
             entry.set(value)
         
         elif param == 'image':
-            entry = ctk.CTkEntry(frame_temp, width=175)
+            entry = ctk.CTkEntry(frame_temp, width=170)
             # Passa 'entry' como argumento no lambda
-            ctk.CTkButton(frame_temp, text='...', width=15, command=lambda e=entry: buscar_imagem(e)).pack(side='right', padx=(5, 0))
+            ctk.CTkButton(frame_temp, text='...', width=25, command=lambda e=entry: buscar_imagem(e)).pack(side='right', padx=(5, 0))
             entry.insert(0, str(value))
         
         else:
@@ -121,18 +118,20 @@ def visual_widget(widget):
             param = [k for k, v in dt.traducoes_parametros.items() if v == chave][0]
             valor = entry_widget.get()
             # Atualiza o widget
-            widget.propriedades[param] = valor
-            widget.config(param,valor)
+            projeto.config_widget(wid, param, valor)
 
-def funcao(widget):
+def comando(projeto, wid):
+    # Encontra o Widget
+    nome_aba = projeto.notebook.tab(projeto.notebook.select(), 'text')
+    widget = projeto.abas[nome_aba]['widgets'][wid]
+
     # Cria a janela
-    janela = cw.janelaScroll('Conexão Modbus', geometry=(400, 400), button_set=False, scrollbar=False, resizable=(False, False))
+    janela = cw.customTopLevel('Configurar Comando', geometry=(300, 400), button_set=True, scrollbar=True, closeWindow=False, resizable=(False, False))
 
     # Combobox com as funções disponíveis
     ctk.CTkLabel(janela, text='Função:').pack(pady=5)
-    combo_funcao = ctk.CTkComboBox(janela, values=list(dt.funcoes.keys()), state='readonly', width=200)
-    combo_funcao.pack(pady=5)
-    combo_funcao.bind('<<ComboboxSelected>>', lambda:atualizar_campos())
+    combo_comando = ctk.CTkComboBox(janela, values=list(dt.funcoes.keys()), state='readonly', width=200, command=lambda e:atualizar_campos())
+    combo_comando.pack(pady=5)
 
     # Frame para os parâmetros
     frame_parametros = ctk.CTkFrame(janela)
@@ -141,22 +140,41 @@ def funcao(widget):
 
     # Função para atualizar os parâmetros de acordo com a função selecionada
     def atualizar_campos():
-        # Pega o valor do Combobox
-        funcao_selecionada = combo_funcao.get()
+    # Pega o valor do Combobox
+        comando = combo_comando.get()
+        nome_aba = projeto.notebook.tab(projeto.notebook.select(), 'text')
+        projeto.abas[nome_aba]['widgets'][wid]['comando'] = comando
         
         # Limpa todos os widgets antigos do frame de parâmetros
         for child in frame_parametros.winfo_children()[1:]:
             child.destroy()
 
         # Cria todos os campos de parâmetros dinamicamente
-        for param, value in dt.funcoes[funcao_selecionada]['parametros'].items():
-            # Cria um frame temporário simplesmente pra organizar os campos
+        for param, value in dt.funcoes[comando]['parametros'].items():
+            # Cria um frame temporário para organizar os campos
             frame_temp = ctk.CTkFrame(frame_parametros)
             frame_temp.pack(fill='x', pady=2, padx=2)
             frame_temp.configure(fg_color=frame_parametros.cget('fg_color'))
-            ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             
-            # Cria as entrys de acordo com o parâmetro
-            entry = ctk.CTkEntry(frame_temp, width=100)
-            entry.insert(0, str(value))
+            # Cria as entradas de acordo com o parâmetro
+            ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
+            entry = None
+            if param == 'server':
+                servidores = projeto.abas[nome_aba]['servidores'].keys()
+                entry = ctk.CTkComboBox(frame_temp, values=list(servidores), state='readonly', width=100)
+            else:
+                entry = ctk.CTkEntry(frame_temp, width=100)
+                entry.insert(0, str(value))
             entry.pack(side='right')
+    
+    def salvar_comando():
+        # Pega a chave e valor
+        for frame in janela.winfo_children()[2].winfo_children()[1:]:
+            label_widget = frame.winfo_children()[0]
+            entry_widget = frame.winfo_children()[1]
+            # Trata os dados
+            chave = label_widget.cget('text').replace(':', '')
+            param = [k for k, v in dt.traducoes_parametros.items() if v == chave][0]
+            valor = entry_widget.get()
+            # Atualiza o widget
+            widget['comando'] = combo_comando.get()

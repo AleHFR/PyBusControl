@@ -20,8 +20,8 @@ selecionaveis = {
 
 # Estruturas padrão para cada tipo de servidor
 estrutura_servidor = {
-    'TCP': {'IP': '127.168.0.1', 'Porta': 502, 'Timeout (s)': 1},
-    'RTU': {'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
+    'TCP': {'ID':1, 'IP': '127.168.0.1', 'Porta': 502, 'Timeout (s)': 1},
+    'RTU': {'ID':1, 'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
 }
 
 # Dicionário para salvar os icones das imagens
@@ -29,11 +29,10 @@ imagens = {}
 
 def configurar_servidores(projeto):
     # Cria a janela
-    janela = cw.janelaScroll('Conexão Modbus', geometry=(500, 400), button_set=False, scrollbar=False, resizable=(False, False))
+    janela = cw.customTopLevel('Conexão Modbus', geometry=(500, 400), button_set=False, scrollbar=False, resizable=(False, False))
 
     # Pega os servidores existentes
     servidores = projeto.servidores
-    servidor_selecionado = None
 
     # Frame para os servidores
     frame_servidores = ctk.CTkFrame(janela, width=150)
@@ -72,11 +71,10 @@ def configurar_servidores(projeto):
 
     # Função para atualizar os parâmetros de acordo com o servidor selecionado
     def atualizar_campos(server):
-        nonlocal servidor_selecionado
+        configs = servidores[server]['configs']
         # Verifica se tem algum servidor selecionado
-        servidor_selecionado = servidores.get(server)
         for bt in lista.winfo_children():
-            if bt.cget('text') == servidor_selecionado.nome:
+            if bt.cget('text') == server:
                 bt.configure(fg_color='lightblue',
                              text_color='black')
             else:
@@ -87,7 +85,7 @@ def configurar_servidores(projeto):
             widget.destroy()
 
         # Cria todos os campos de parâmetros dinamicamente
-        for param, value in servidor_selecionado.modbus.items():
+        for param, value in configs.items():
             # Cria um frame temporário simplesmente pra organizar os campos
             frame_temp = ctk.CTkFrame(frame_parametros)
             frame_temp.pack(fill='x', pady=2, padx=2)
@@ -129,30 +127,28 @@ def configurar_servidores(projeto):
 
     # Função para mudar o nome de um servidor
     def mudar_nome():
-        nonlocal servidor_selecionado
         # Verifica se tem algum servidor selecionado
-        if not servidor_selecionado:
+        if not server:
             return
         
         novo_nome = ctk.CTkInputDialog(text='Novo nome:', title='Insira o novo nome do servidor').get_input()
         # Verifica se o novo nome é válido
-        if novo_nome and novo_nome != servidor_selecionado.nome and novo_nome not in projeto.servidores:
-            projeto.novoNome_servidor(servidor_selecionado.nome, novo_nome)
+        if novo_nome and novo_nome != server and novo_nome not in projeto.servidores:
+            projeto.novoNome_servidor(server, novo_nome)
             for bt in lista.winfo_children():
-                if bt.cget('text') == servidor_selecionado.nome:
-                    servidor_selecionado.nome = novo_nome
+                if bt.cget('text') == server:
+                    server = novo_nome
                     bt.configure(text=novo_nome)
         else:
             messagebox.showwarning('Erro', 'Nome inválido ou nome duplicado')
 
     def salvar_servidor():
-        nonlocal servidor_selecionado
         # Verifica se tem algum servidor selecionado
-        if not servidor_selecionado:
+        if not server:
             return
         
         # Usar a seleção atual
-        nome_servidor = servidor_selecionado.nome
+        nome_servidor = server
         # Pega a chave e valor
         for frame in frame_parametros.winfo_children()[1:]:
             # O primeiro é o CTkLabel e o segundo é a entrada
@@ -166,22 +162,19 @@ def configurar_servidores(projeto):
 
     # Função para remover um servidor
     def remover_servidor():
-        nonlocal servidor_selecionado
         # Verifica se tem algum servidor selecionado
-        if not servidor_selecionado:
+        if not server:
             return
         
         # Remove o servidor
-        if servidor_selecionado:
-            nome_servidor = servidor_selecionado.nome
-            if cw.ask_yes_no('Remover Servidor', f'Deseja remover o servidor {nome_servidor}?') == True:
-                for bt in lista.winfo_children():
-                    if bt.cget('text') == nome_servidor:
-                        bt.destroy()
-                projeto.del_servidor(nome_servidor)
-                
-                for widget in frame_parametros.winfo_children()[1:]:
-                    widget.destroy()
+        if cw.customDialog('Remover Servidor', f'Deseja remover o servidor {server}?') == True:
+            for bt in lista.winfo_children():
+                if bt.cget('text') == server:
+                    bt.destroy()
+            projeto.del_servidor(server)
+            
+            for widget in frame_parametros.winfo_children()[1:]:
+                widget.destroy()
 
 # Função para conectar os servidores
 def conectar_servidores(projeto):

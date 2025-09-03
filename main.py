@@ -1,6 +1,5 @@
 ########### Preâmbulo ###########
 # Imports do python
-import tkinter as tk
 import customtkinter as ctk
 import platform
 
@@ -26,11 +25,11 @@ def maximizar_janela():
         root.attributes('-zoomed', True)
 
 ########## Menu ##########
-menu_bar = tk.Menu(root, tearoff=0, )
+menu_bar = cw.customMenu(root)
 root.config(menu=menu_bar)
 
 # Criar um menu de arquivo
-menu_arquivo = tk.Menu(menu_bar, tearoff=0)
+menu_arquivo = cw.customMenu(menu_bar)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:gm.novo_projeto(root))
 menu_arquivo.add_separator()

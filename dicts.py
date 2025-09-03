@@ -25,7 +25,7 @@ widgets_padrao = {
             'corner_radius': 6,
             'border_width': 0,
             'border_spacing': 2,
-            'fg_color': '#3B8BBE',
+            'fg_color': "#FFFFFF",
             'hover_color': '#325882',
             'border_color': None,
             'text_color': "#000000",
@@ -94,7 +94,7 @@ widgets_padrao = {
             'corner_radius': 1000,
             'border_width': 3,
             'border_color': '#3B8BBE',
-            'fg_color': '#565B5E',
+            'fg_color': "#FFFFFF",
             'progress_color': '#3B8BBE',
             'button_color': '#DCE4EE',
             'button_hover_color': '#BFC9C9',
@@ -144,7 +144,6 @@ parametros_especiais = {
 
 funcoes = {
     'Write_Single_Coil': {
-        'funcao': None,
         'parametros': {
             'server': '',
             'slave_id': 0,
@@ -152,17 +151,7 @@ funcoes = {
             'value': 0
         }
     },
-    'Write_Multiple_Coils': {
-        'funcao': None,
-        'parametros': {
-            'server': '',
-            'slave_id': 0,
-            'start_address': 0,
-            'values': []
-        }
-    },
-    'Read_Coils': {
-        'funcao': None,
+    'Read_Single_Coil': {
         'parametros': {
             'server': '',
             'slave_id': 0,
@@ -170,8 +159,7 @@ funcoes = {
             'num_coils': 0
         }
     },
-    'Write_Single_Register': {
-        'funcao': None,
+    'Write_Single_Registe': {
         'parametros': {
             'server': '',
             'slave_id': 0,
@@ -179,17 +167,7 @@ funcoes = {
             'value': 0
         }
     },
-    'Write_Multiple_Registers': {
-        'funcao': None,
-        'parametros': {
-            'server': '',
-            'slave_id': 0,
-            'start_address': 0,
-            'values': []
-        }
-    },
-    'Read_Registers': {
-        'funcao': None,
+    'Read_Single_Register': {
         'parametros': {
             'server': '',
             'slave_id': 0,
