@@ -1,6 +1,9 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
+import custom_widgets as cw
+from PIL import Image, ImageTk
 
 #arrumar
 def ask_yes_no(title: str, message: str) -> bool:
@@ -79,6 +82,52 @@ def janelaScroll(title, geometry=None, resizable=None, scrollbar=None, button_se
     frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
 
     return frame_interno
+
+def dica(texto:str=None):
+    # Encontra a barra de ferrementas do projeto principal
+    barra_ferramentas = None
+    for widget in tk._default_root.winfo_children():
+        if widget.winfo_class() == 'TLabelframe':
+            barra_ferramentas = widget
+    # Verifica se o label já existe
+    for widget in barra_ferramentas.winfo_children():
+        if widget.winfo_class() == 'TLabel':
+            widget.config(text=texto if texto else 'Nenhuma Atividade')
+
+def imagem(nome, tamanho_icone=None):
+    caminho_icone = os.path.join(os.path.dirname(__file__), 'assets', nome)
+    image = Image.open(caminho_icone)
+    # Muda a cor da imagem
+    if tamanho_icone:
+        image = image.resize((tamanho_icone))
+    image = ImageTk.PhotoImage(image)
+    return image
+
+def preferencias(): # Passe a janela principal como argumento
+    # 1. Cria a janela Toplevel (janela secundária)
+    janela = cw.janelaScroll('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
+
+    # --- Frame para o Modo de Aparência (Light/Dark) ---
+    frame_modo = ctk.CTkFrame(janela)
+    frame_modo.pack(pady=10, padx=15, fill="x")
+
+    ctk.CTkLabel(frame_modo, text='Modo de Aparência:').pack(padx=10, pady=5, side='left')
+    
+    modos = ['Light', 'Dark', 'System']
+    modo_sel = ctk.CTkComboBox(frame_modo, values=modos, state='readonly', width=120)
+    modo_sel.pack(padx=10, pady=5, side='right')
+    modo_sel.set(ctk.get_appearance_mode()) # Pega o modo atual e define no ComboBox
+
+    # --- Frame para o Tema de Cores ---
+    frame_tema = ctk.CTkFrame(janela)
+    frame_tema.pack(pady=10, padx=15, fill="x")
+
+    # --- Botão Aplicar ---
+    def aplicar():
+        # Pega os valores selecionados e aplica
+        novo_modo = modo_sel.get().lower()
+        
+        ctk.set_appearance_mode(novo_modo)
 
 def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
     values_orig = values[:]  # cópia para evitar alterar lista original

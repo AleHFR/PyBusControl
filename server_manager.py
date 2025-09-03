@@ -1,7 +1,5 @@
 ########### Preâmbulo ###########
 # Imports do python
-import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 from tkinter import messagebox
 from tktooltip import ToolTip
@@ -9,7 +7,7 @@ import serial.tools.list_ports
 
 # Imports do projeto
 import custom_widgets as cw
-import utils as ut
+
 
 # Dicionário com as opções para os Combobox
 selecionaveis = {
@@ -50,13 +48,12 @@ def configurar_servidores(projeto):
         'Adicionar RTU': {'command': lambda: adicionar_servidor('RTU'), 'image': 'rtu.png'},
         'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
         'Mudar Nome': {'command': lambda: mudar_nome(), 'image': 'edit.png'},
-        'Editar': {'command': lambda: editar_servidor(), 'image': 'config.png'},
         'Salvar': {'command': lambda: salvar_servidor(), 'image': 'save.png'},
         'Remover': {'command': lambda: remover_servidor(), 'image': 'del.png'},
     }
     # Adiciona os botoes ao frame
     for key, value in btns.items():
-        imagens[key] = ut.imagem(value['image'], (15, 15))
+        imagens[key] = cw.imagem(value['image'], (15, 15))
         bt = ctk.CTkButton(frame_bt,text='', width=0, fg_color='#FFFFFF', hover_color='gray', command=value['command'], image=imagens[key])
         bt.pack(side='left', padx=2, pady=2)
         ToolTip(bt, msg=key)
@@ -105,13 +102,13 @@ def configurar_servidores(projeto):
                     entry = ctk.CTkComboBox(frame_temp, values=portas, width=100)
                 else:
                     entry = ctk.CTkComboBox(frame_temp, values=selecionaveis[param], width=100)
+                    entry.configure(state='readonly')
                 entry.set(value)
             else:
                 entry = ctk.CTkEntry(frame_temp, width=100)
                 entry.insert(0, value)
             # Desabilita os campos por padrão
             if entry:
-                entry.configure(state='disabled')
                 entry.pack(side='right')
 
     # Função para adicionar um novo servidor
@@ -126,7 +123,6 @@ def configurar_servidores(projeto):
                     return
                 # Adiciona o servidor à lista
                 ctk.CTkButton(master=lista, text=nome, corner_radius=0, command=lambda n=nome:atualizar_campos(n)).pack(fill='x')
-                editar_servidor()
             else:
                 messagebox.showwarning('Erro', 'Nome de servidor inválido')
         aplicar(nome, tipo)
@@ -144,24 +140,10 @@ def configurar_servidores(projeto):
             projeto.novoNome_servidor(servidor_selecionado.nome, novo_nome)
             for bt in lista.winfo_children():
                 if bt.cget('text') == servidor_selecionado.nome:
+                    servidor_selecionado.nome = novo_nome
                     bt.configure(text=novo_nome)
         else:
             messagebox.showwarning('Erro', 'Nome inválido ou nome duplicado')
-
-    # Função para editar um servidor
-    def editar_servidor():
-        nonlocal servidor_selecionado
-        # Verifica se tem algum servidor selecionado
-        if not servidor_selecionado:
-            return
-        
-        # Procura os campos e os habilita
-        for frame in frame_parametros.winfo_children():
-            widget = frame.winfo_children()[1] # O segundo widget é sempre o de entrada
-            if isinstance(widget, ctk.CTkEntry):
-                widget.configure(state='normal')
-            elif isinstance(widget, ctk.CTkComboBox):
-                widget.configure(state='readonly')
 
     def salvar_servidor():
         nonlocal servidor_selecionado
@@ -172,17 +154,15 @@ def configurar_servidores(projeto):
         # Usar a seleção atual
         nome_servidor = servidor_selecionado.nome
         # Pega a chave e valor
-        for frame in frame_parametros.winfo_children():
+        for frame in frame_parametros.winfo_children()[1:]:
+            # O primeiro é o CTkLabel e o segundo é a entrada
             label_widget = frame.winfo_children()[0]
             entry_widget = frame.winfo_children()[1]
-            # Trata os dados
+
+            # Salva as configurações
             chave = label_widget.cget('text').replace(':', '')
             valor = entry_widget.get()
-            # Atualiza o dicionário no projeto
             projeto.config_servidor(nome_servidor, chave, valor)
-            # Desabilita o campo após salvar
-            entry_widget.configure(state='disabled')
-        projeto.exibir()
 
     # Função para remover um servidor
     def remover_servidor():
@@ -194,7 +174,7 @@ def configurar_servidores(projeto):
         # Remove o servidor
         if servidor_selecionado:
             nome_servidor = servidor_selecionado.nome
-            if cw.ask_yes_no('Remover Servidor', f'Deseja remover o servidor {nome_servidor}?') == 'Remover':
+            if cw.ask_yes_no('Remover Servidor', f'Deseja remover o servidor {nome_servidor}?') == True:
                 for bt in lista.winfo_children():
                     if bt.cget('text') == nome_servidor:
                         bt.destroy()

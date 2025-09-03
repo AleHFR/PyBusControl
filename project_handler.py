@@ -1,124 +1,75 @@
 ########### Preâmbulo ###########
 # Imports do python
+import tkinter as tk
 from tkinter import ttk
+import customtkinter as ctk
 from tkinter import messagebox
 
 # Imports do projeto
 import handlers.server as sh
 import handlers.widget as wh
-import handlers.notebook as nh
+import dicts as dt
 
 class Projeto:
     def __init__(self, root):
         self.notebook = ttk.Notebook(root)
-        self.notebook.pack(side='bottom',fill='both', expand=True)
+        self.notebook.pack(side='bottom', fill='both', expand=True)
         self.abas = {}
         self.servidores = {}
 
-    #################### Funções auxiliares ####################
-    ########## exibe o projeto no terminal ##########
-    def exibir(self):
-        print("\n" + "#"*20 + " ESTADO ATUAL DO PROJETO " + "#"*20)
-
-        # Exibe os servidores
-        if self.servidores:
-            print("\n>>> SERVIDORES:")
-            for nome, servidor in self.servidores.items():
-                print(f"  - Nome: {nome}")
-                if hasattr(servidor, 'conexao'):
-                    print(f"    - Conexão: {servidor.conexao}")
-                if hasattr(servidor, 'modbus'):
-                    if servidor.modbus:
-                        print("    - Configurações:")
-                        for config, valor in servidor.modbus.items():
-                            print(f"      • {config}: {valor}")
-                    else:
-                        print("    - Configurações: Nenhuma")
-        else:
-            print("\n>>> Nenhum servidor adicionado.")
-
-        # Exibe as abas
-        if self.abas:
-            print("\n>>> ABAS:")
-            for nome, aba in self.abas.items():
-                print(f"  - Nome: {nome}")
-                print(f"    - Tamanho: {aba.tamanho[0]}x{aba.tamanho[1]} pixels")
-                print(f"    - Imagem de fundo: {aba.imagem if aba.imagem else 'Não'}")
-
-                # Exibe os widgets da aba
-                if aba.widgets:
-                    print("    - Widgets:")
-                    # Varrer todos os parâmetros de cada widget
-                    for wid, widget_obj in aba.widgets.items():
-                        print(f"      • ID={wid} | Classe={widget_obj.classe.__name__}")
-                        print(f"        - Posição: ({widget_obj.x}, {widget_obj.y})")
-                        if widget_obj.propriedades:
-                            print("        - Propriedades:")
-                            for prop, valor in widget_obj.propriedades.items():
-                                print(f"          - {prop}: {valor}")
-                else:
-                    print("    - Widgets: Nenhum")
-        else:
-            print("\n>>> Nenhuma aba adicionada.")
-        
-        print("#"*65 + "\n")
-    
-    ########## encontra alguma coisa ##########
-    def find(self, coisa, id_widget=None):
-        index = self.notebook.select()
-        nome_aba = self.notebook.tab(index, 'text')
-        aba = self.abas[nome_aba]
-        canvas = aba.canvas
-        if coisa == 'id_aba':
-            return index
-        elif coisa == 'nome_aba':
-            return nome_aba
-        elif coisa == 'aba':
-            return aba
-        elif coisa == 'canvas':
-            return canvas
-        elif coisa == 'widget' and id_widget:
-            return aba.widgets[id_widget]
-
     #################### Trabalhando com as abas do Notebook ####################
     ########## Adiciona uma aba no notebook ##########
-    def add_aba(self, nome, x=None, y=None):
+    def add_aba(self, nome):
         if nome in self.abas.keys():
             messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
             return
-        # Cria objeto Aba
-        aba = nh.Aba(self.notebook)
-        frame_aba = aba.add(x, y)
-        # Adiciona no notebook
-        self.notebook.add(frame_aba, text=nome)
-        self.notebook.select(frame_aba)
-        aba.idx = self.notebook.select()
+        # Tamanho padrão
+        x = 1280
+        y = 780
+        # Adiciona uma aba
+        frame = ctk.CTkFrame(self.notebook)
+        canvas = tk.Canvas(frame, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
+        canvas.pack()
+        self.notebook.add(frame, text=nome)
+        self.notebook.select(frame)
         # Guarda no projeto
-        self.abas[nome] = aba
-        self.exibir()
-    
-    def config_aba(self, aba, chave, valor):
+        self.abas[nome] = {'canvas': canvas, 'widgets': {}, 'tamanho': (x, y), 'imagem': ''}
+
+    ########## Configura uma aba no notebook ##########
+    def config_aba(self, chave, valor):
+        aba = self.notebook.select()
         if chave == 'nome':
             # Verifica se já existe uma aba com esse nome  e se o nome é diferente do atual
-            nome_antigo = self.find('nome_aba')
+            aba = self.notebook.select()
+            nome_antigo = self.notebook.tab(aba, 'text')
             if valor != nome_antigo and valor in self.abas.keys():
                 messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
                 return
             else:
-                aba.novoNome(valor)
+                self.notebook.tab(aba, text=valor)
                 self.abas[valor] = self.abas.pop(nome_antigo)
         elif chave == 'tamanho':
-            aba.novoTamanho(valor)
+            nome = self.notebook.tab(aba, 'text')
+            x, y = valor
+            self.abas[nome]['canvas'].config(width=x, height=y)
         elif chave == 'imagem':
-            aba.novaImagem(valor)
-        self.exibir()
-    
-    def del_aba(self, aba):
-        nome_aba = self.notebook.tab(aba.idx, 'text')
+            if not valor:
+                return
+            nome = self.notebook.tab(aba, 'text')
+            self.abas[nome]['img'] = ut.imagem(valor)
+            self.abas[nome]['canvas'].image_ref = self.abas[nome]['img']
+            self.abas[nome]['canvas'].create_image(self.abas[nome]['canvas'].winfo_width()/2,
+                                                  self.abas[nome]['canvas'].winfo_height()/2,
+                                                  image=self.abas[nome]['canvas'].image_ref,
+                                                  anchor='center')
+
+    ########## Deleta uma aba no notebook ##########
+    def del_aba(self):
+        aba = self.notebook.select()
+        nome_aba = self.notebook.tab(aba, 'text')
         if messagebox.askyesno("Confirmar", f"Deseja excluir a aba: '{nome_aba}'?"):
-            aba.delete()
+            self.notebook.forget(aba)
             del self.abas[nome_aba]
-        self.exibir()
 
     #################### Trabalhando com os Servidores ####################
     ########## Adicionar um servidor ##########
@@ -128,64 +79,60 @@ class Projeto:
             for key, value in configs.items():
                 servidor.config(key, value)
             self.servidores[nome_servidor] = servidor
-        self.exibir()
-    
-    ########## Conecta ao servidor ##########
-    def concetar_servidor(self, nome_servidor):
+
+    ########## Conecta a um servidor ##########
+    def conectar_servidor(self, nome_servidor):
         if nome_servidor in self.servidores.keys():
             self.servidores[nome_servidor].conectar()
-        self.exibir()
 
     ########## Mudar o nome do servidor ##########
     def novoNome_servidor(self, nome_servidor, novo_nome_servidor):
         if novo_nome_servidor not in self.servidores.keys():
             self.servidores[novo_nome_servidor] = self.servidores[nome_servidor]
             del self.servidores[nome_servidor]
-        self.exibir()
 
     ########## Configurar o servidor ##########
     def config_servidor(self, nome_servidor, config, valor):
-        if config in self.servidores[nome_servidor].modbus.keys():
-            servidor = self.servidores[nome_servidor]
+        servidor = self.servidores[nome_servidor]
+        if config in servidor.modbus.keys():
             servidor.config(config, valor)
-        self.exibir()
 
     ########## Deletar um servidor ##########
     def del_servidor(self, nome_servidor):
         if nome_servidor in self.servidores:
             del self.servidores[nome_servidor]
-        self.exibir()
 
     ####################  Trabalhando com os Widgets das abas ####################
     ########## Adicionar um widget ##########
     def add_widget(self, classe, dados_widget, x, y):
         # Encontra aba atual
-        nome_aba = self.find('nome_aba')
-        canvas_atual = self.find('canvas')
+        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
+        canvas_atual = self.abas[nome_aba]['canvas']
         # Adiciona o widget na visualização
         widget = wh.Widget(canvas_atual, classe, dados_widget, x, y)
         # Salva no projeto
-        self.abas[nome_aba].widgets[widget.id] = widget
-        self.exibir()
+        self.abas[nome_aba]['widgets'][widget.id] = widget
+        
         return widget
 
     ########## Configurar o widget ##########
     def config_widget(self, wid, prop, novo_valor):
         # Encontra aba atual
-        nome_aba = self.find('nome_aba')
-        canvas_atual = self.find('canvas')
+        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
+        canvas_atual = self.abas[nome_aba]['canvas']
         # Altera o widget na visualização
         widget = canvas_atual.nametowidget(canvas_atual.itemcget(wid, 'window'))
         widget.config(**{prop: novo_valor})
         # Altera o widget no projeto
         widget = self.abas[nome_aba].widgets[wid]
         widget.propriedades[prop] = novo_valor
-        self.exibir()
+        
 
     ########## Deletar um widget ##########
     def del_widget(self, wid):
-        canvas_atual = self.find('canvas')
+        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
+        canvas_atual = self.abas[nome_aba]['canvas']
         widget = canvas_atual.nametowidget(canvas_atual.itemcget(wid, 'window'))
         widget.destroy()
         canvas_atual.delete(wid)
-        self.exibir()
+        

@@ -10,11 +10,10 @@ import custom_widgets as cw
 import project_handler as pj
 import widget_manager as wm
 import server_manager as sm
-import utils as ut
 
 imagens = {}
 
-def novo_projeto(root, nome=None):
+def novo_projeto(root):
     # Limpa o root
     for widget in root.winfo_children():
         # Destroi apenas os widgets não necessários
@@ -35,10 +34,6 @@ def novo_projeto(root, nome=None):
             'command': lambda:config_aba(projeto),
             'icone': 'config.png',
         },
-        'Deletar Aba': {
-            'command': lambda:del_aba(projeto),
-            'icone': 'del.png',
-        },
         'Configurar Servidores': {
             'command': lambda:sm.configurar_servidores(projeto),
             'icone': 'servidor.png',
@@ -52,13 +47,13 @@ def novo_projeto(root, nome=None):
             'icone': 'widget.png',
         },
         'Tela Cheia':{
-            'command': lambda:ut.tela_cheia(),
+            'command': lambda:tela_cheia(root),
             'icone': 'tela_cheia.png',
         },
     }
     # Cria os botões
     for nome_botao, cfg in itens.items():
-        imagens[nome_botao] = ut.imagem(cfg['icone'], (15, 15))
+        imagens[nome_botao] = cw.imagem(cfg['icone'], (15, 15))
         bt = ctk.CTkButton(
             barra_ferramentas,
             text='',
@@ -85,7 +80,7 @@ def add_aba(projeto):
 
 def config_aba(projeto):
     # Verifica se tem ao menos uma aba aberta
-    if not projeto.notebook.tabs():
+    if not projeto.abas.keys():
         messagebox.showerror('Erro', 'Nenhuma aba existente')
         return
 
@@ -93,14 +88,12 @@ def config_aba(projeto):
     janela = cw.janelaScroll('Configurar Aba', geometry=(300, 300), buttonName='Aplicar', closeWindow=False, command=lambda: aplicar())
     
     # Encontra a aba atual
-    aba = projeto.find('aba')
+    aba = projeto.notebook.select()
+    nome = projeto.notebook.tab(aba, 'text')
 
     # Cria todos os campos de parâmetros dinamicamente
-    # junta dois dicionarios
-    params = {'nome': projeto.find('nome_aba'),**aba.__dict__}
+    params = {'nome': nome, 'tamanho': projeto.abas[nome]['tamanho'], 'imagem': projeto.abas[nome]['imagem']}
     for param, value in params.items():
-        # Ignora os parâmetros desnecessários
-        if param in ['notebook', 'idx', 'canvas', 'widgets']: continue
         # Cria um frame temporário simplesmente pra organizar os campos
         frame_temp = ctk.CTkFrame(janela)
         frame_temp.pack(fill='x', pady=2, padx=2)
@@ -121,6 +114,8 @@ def config_aba(projeto):
             entry = ctk.CTkEntry(frame_temp, width=150)
             entry.insert(0, value)
         entry.pack(side='right')
+    # Botão para deletar a aba
+    ctk.CTkButton(janela, text='Deletar', command=lambda:del_aba()).pack(side='bottom', pady=5, padx=5)
 
     def aplicar():
         # Pega a chave e valor
@@ -133,15 +128,24 @@ def config_aba(projeto):
             # Trata os dados
             if chave == 'tamanho':
                 x, y = valor.split('x')
-                projeto.config_aba(aba, chave, (int(x), int(y)))
+                projeto.config_aba(chave, (int(x), int(y)))
             else:
-                projeto.config_aba(aba, chave, valor)
+                projeto.config_aba(chave, valor)
 
-def del_aba(projeto):
-    # Verifica se há abas existentes
-    if not projeto.notebook.tabs():
-        messagebox.showerror('Erro', 'Nenhuma aba existente')
-        return
-    # Encontra a aba atual e a exclui
-    aba = projeto.find('aba')
-    projeto.del_aba(aba)
+    def del_aba():
+        # Verifica se há abas existentes
+        if not projeto.abas.keys():
+            messagebox.showerror('Erro', 'Nenhuma aba existente')
+            return
+        # Exclui a aba de fato
+        projeto.del_aba()
+        janela.destroy()
+
+def tela_cheia(root):
+    is_fullscreen = root.attributes('-fullscreen')
+    root.attributes('-fullscreen', not is_fullscreen)
+    # Adiciona ou remove o binding do ESC quando entra/sai do modo tela cheia
+    if not is_fullscreen:
+        root.bind('<Escape>', lambda e: tela_cheia(root))
+    else:
+        root.unbind('<Escape>')

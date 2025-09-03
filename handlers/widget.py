@@ -5,8 +5,7 @@ import customtkinter as ctk
 
 # Imports do projeto
 import widget_manager as wm
-import utils as ut
-
+import custom_widgets as cw
 
 class Widget: 
     def __init__(self, canvas, classe, propriedades, x, y):
@@ -21,9 +20,15 @@ class Widget:
         self.comando = None
         # Menu de contexto do Widget
         def menuContexto_widget(event):
-            context_menu = tk.Menu(self.canvas, tearoff=0)
+            context_menu = tk.Menu(self.canvas,
+                               bg=ctk.ThemeManager.theme["CTkButton"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["fg_color"][1],
+                               fg=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
+                               activebackground=ctk.ThemeManager.theme["CTkButton"]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["hover_color"][1],
+                               activeforeground=ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkButton"]["text_color"][1],
+                               tearoff=0)
             context_menu.add_command(label='Mover', command=lambda:self.move(self.id))
-            context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades_widget(self))
+            context_menu.add_command(label='Função', command=lambda:wm.funcao(self))
+            context_menu.add_command(label='Visual', command=lambda:wm.visual_widget(self))
             context_menu.add_command(label='Excluir', command=lambda:self.delete(self.id))
             context_menu.post(event.x_root, event.y_root)
         # Cria o bind do menu de contexto
@@ -35,12 +40,12 @@ class Widget:
 
     def config(self, prop, novo_valor):
         if prop == 'image':
-            novo_valor = ut.imagem(novo_valor)
-        self.widget.config(**{prop: novo_valor})
+            novo_valor = cw.imagem(novo_valor)
+        self.widget.configure(**{prop: novo_valor})
 
     def move(self, wid):
         # Dica
-        ut.dica('Clique e arraste para mover o widget')
+        cw.dica('Clique e arraste para mover o widget')
         # posição inicial do item no canvas
         x0, y0 = self.canvas.coords(wid)
 
@@ -73,7 +78,7 @@ class Widget:
             self.canvas.unbind('<Motion>')
             self.canvas.unbind('<ButtonRelease-1>')
             self.canvas._drag_data = {}
-            ut.dica()
+            cw.dica()
 
         # espera o clique esquerdo pra começar arrastar
         self.canvas.bind('<Button-1>', iniciar)
