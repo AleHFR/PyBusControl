@@ -110,9 +110,18 @@ class customMenu(tk.Menu):
                          activebackground=activebg, activeforeground=activefg,
                          **kwargs)
 
+class customLabelFrame(ttk.LabelFrame):
+    def __init__(self, root, **kwargs):
+        ref = "CTkButton"
+        bg = ctk.ThemeManager.theme[ref]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["fg_color"][1]
+        fg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
+        style = ttk.Style()
+        style.configure("TLabelFrame", background=bg, foreground=fg)
+        super().__init__(root, **kwargs)
+
 # Transformar em classe
 class customTopLevel(ctk.CTkToplevel):
-    def __init__(self, title, geometry=None, resizable=None, scrollbar=True, buttonSet=True, command=None, buttonName=None, closeWindow=False, **kwargs):
+    def __init__(self, title, geometry=None, resizable=None, scrollbar=True, buttonSet=True, command=None, buttonName=None, **kwargs):
         super().__init__(tk._default_root, **kwargs)
         self.title(title)
         self.transient(tk._default_root)
@@ -131,8 +140,6 @@ class customTopLevel(ctk.CTkToplevel):
             def aplicar():
                 if command:
                     command()
-                if closeWindow:
-                    self.destroy()
             ctk.CTkButton(frame_botao, text=buttonName if buttonName else 'Aplicar', command=aplicar).pack()
         # Frame interno
         self.frame_interno = ctk.CTkScrollableFrame(self) if scrollbar else ctk.CTkFrame(self)

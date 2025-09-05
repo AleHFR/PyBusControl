@@ -1,6 +1,5 @@
 ########### Preâmbulo ###########
 # Imports do python
-from tkinter import ttk
 import customtkinter as ctk
 from tktooltip import ToolTip
 from tkinter import messagebox, filedialog
@@ -22,7 +21,7 @@ def novo_projeto(root):
     # Instancia o projeto principal
     projeto = pj.Projeto(root)
     # Cria a barra de edição
-    barra_ferramentas = ttk.LabelFrame(root, text='Novo Projeto')
+    barra_ferramentas = cw.customLabelFrame(root, text='Novo Projeto')
     barra_ferramentas.pack(side='top', anchor='nw', fill='x', padx=2, pady=2)
     # Botões da aba
     itens = {

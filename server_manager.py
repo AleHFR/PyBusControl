@@ -29,18 +29,18 @@ imagens = {}
 
 def configurar_servidores(projeto):
     # Cria a janela
-    janela = cw.customTopLevel('Conexão Modbus', geometry=(500, 400), button_set=False, scrollbar=False, resizable=(False, False))
+    janela = cw.customTopLevel('Conexão Modbus', geometry=(500, 400), buttonSet=False, scrollbar=False, resizable=(False, False))
 
     # Pega os servidores existentes
     servidores = projeto.servidores
     server_sel = None # Servidor selecionado
 
     # Frame para os servidores
-    frame_servidores = ctk.CTkFrame(janela, width=150)
+    frame_servidores = ctk.CTkFrame(janela.frame_interno, width=150, fg_color='transparent')
     frame_servidores.pack(side='left', fill='both', padx=5, pady=5)
     
     # Frame para os botões
-    frame_bt = ctk.CTkFrame(frame_servidores)
+    frame_bt = ctk.CTkFrame(frame_servidores, fg_color='transparent')
     frame_bt.pack(anchor='w', fill='x', padx=2, pady=2)
     # Lista com os botões
     btns = {
@@ -59,14 +59,14 @@ def configurar_servidores(projeto):
         ToolTip(bt, msg=key)
         
     # Lista para os servidores
-    lista = ctk.CTkScrollableFrame(frame_servidores)
+    lista = ctk.CTkScrollableFrame(frame_servidores, fg_color='transparent')
     lista.pack(fill='both', expand=True)
     # Coloca os servidores na lista
     for server in servidores.keys():
         ctk.CTkButton(master=lista, text=server, corner_radius=0, command=lambda s=server:atualizar_campos(s)).pack(fill='x')
 
     # Frame para os parâmetros
-    frame_parametros = ctk.CTkFrame(janela)
+    frame_parametros = ctk.CTkFrame(janela.frame_interno, fg_color='transparent')
     frame_parametros.pack(side='right', fill='both', expand=True, padx=5, pady=5)
     ctk.CTkLabel(frame_parametros, text='Parâmetros').pack(pady=5, fill='x', anchor='nw')
 
@@ -90,9 +90,9 @@ def configurar_servidores(projeto):
         # Cria todos os campos de parâmetros dinamicamente
         for param, value in configs.items():
             # Cria um frame temporário simplesmente pra organizar os campos
-            frame_temp = ctk.CTkFrame(frame_parametros)
+            frame_temp = ctk.CTkFrame(frame_parametros, fg_color='transparent')
             frame_temp.pack(fill='x', pady=2, padx=2)
-            frame_temp.configure(fg_color=frame_parametros.cget('fg_color'))
+            frame_temp.configure(fg_color='transparent')
             ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             # Cria as combobox de acordo com o parâmetro
             entry = None
