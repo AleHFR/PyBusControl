@@ -20,7 +20,7 @@ def maximizar_janela():
     system = platform.system()
     if system == "Windows":
         root.state('zoomed')
-    else: # Funciona para Linux e macOS
+    else: # Funciona pra Linux e macOS
         root.attributes('-zoomed', True)
 
 ########## Menu ##########

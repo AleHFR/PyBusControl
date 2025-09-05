@@ -50,6 +50,10 @@ def novo_projeto(root):
             'command': lambda:tela_cheia(root),
             'icone': 'tela_cheia.png',
         },
+        'Exibir':{
+            'command': lambda:projeto.exibir(),
+            'icone': 'save.png',
+        }
     }
     # Cria os botões
     for nome_botao, cfg in itens.items():
@@ -95,7 +99,7 @@ def config_aba(projeto):
     params = {'nome': nome, 'tamanho': projeto.abas[nome]['tamanho'], 'imagem': projeto.abas[nome]['imagem']}
     for param, value in params.items():
         # Cria um frame temporário simplesmente pra organizar os campos
-        frame_temp = ctk.CTkFrame(janela)
+        frame_temp = ctk.CTkFrame(janela.frame_interno)
         frame_temp.pack(fill='x', pady=2, padx=2)
         ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
         # Cria as entrys de acordo com a propriedade
@@ -106,6 +110,7 @@ def config_aba(projeto):
                           ).pack(side='right', padx=2, pady=2)
             def buscar():
                 caminho_imagem = filedialog.askopenfilename()
+                entry.delete(0, ctk.END)
                 entry.insert(0, caminho_imagem)
         elif param == 'tamanho': # Para o tamanho cria um campo de entrada personalizado
             entry = ctk.CTkEntry(frame_temp, width=150)
@@ -115,11 +120,11 @@ def config_aba(projeto):
             entry.insert(0, value)
         entry.pack(side='right')
     # Botão para deletar a aba
-    ctk.CTkButton(janela, text='Deletar', command=lambda:del_aba()).pack(side='bottom', pady=5, padx=5)
+    ctk.CTkButton(janela.frame_interno, text='Deletar', command=lambda:del_aba()).pack(side='bottom', pady=5, padx=5)
 
     def aplicar():
         # Pega a chave e valor
-        for frame in janela.winfo_children():
+        for frame in janela.frame_interno.winfo_children():
             # Pega a chave e valor
             label_aba = frame.winfo_children()[0]
             entry_aba = frame.winfo_children()[1]
@@ -138,7 +143,7 @@ def config_aba(projeto):
             messagebox.showerror('Erro', 'Nenhuma aba existente')
             return
         # Exclui a aba de fato
-        if cw.customDialog(janela, 'Excluir aba', f'Deseja excluir a aba "{nome}"?'):
+        if cw.customDialog('Excluir aba', f'Deseja excluir a aba "{nome}"?'):
             projeto.del_aba()
             janela.destroy()
 
@@ -152,10 +157,8 @@ def tela_cheia(root):
         root.unbind('<Escape>')
 
 def preferencias():
-    janela = cw.customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
-
-    # --- Frame para o Modo de Aparência (Light/Dark) ---
-    frame_modo = ctk.CTkFrame(janela)
+    janela = cw.customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', command=lambda:aplicar())
+    frame_modo = ctk.CTkFrame(janela.frame_interno)
     frame_modo.pack(pady=10, padx=15, fill="x")
 
     ctk.CTkLabel(frame_modo, text='Modo de Aparência:').pack(padx=10, pady=5, side='left')
@@ -165,13 +168,7 @@ def preferencias():
     modo_sel.pack(padx=10, pady=5, side='right')
     modo_sel.set(ctk.get_appearance_mode()) # Pega o modo atual e define no ComboBox
 
-    # --- Frame para o Tema de Cores ---
-    frame_tema = ctk.CTkFrame(janela)
-    frame_tema.pack(pady=10, padx=15, fill="x")
-
-    # --- Botão Aplicar ---
     def aplicar():
         # Pega os valores selecionados e aplica
         novo_modo = modo_sel.get().lower()
-        
         ctk.set_appearance_mode(novo_modo)

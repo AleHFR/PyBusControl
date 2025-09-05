@@ -131,7 +131,7 @@ def comando(projeto, wid):
     servidores = projeto.servidores
 
     # Cria a janela
-    janela = cw.customTopLevel('Configurar Comando', geometry=(300, 400), button_set=True, scrollbar=True, closeWindow=False, resizable=(False, False), command=lambda:salvar_comando())
+    janela = cw.customTopLevel('Configurar Comando', geometry=(300, 400), button_set=True, scrollbar=True, resizable=(False, False), command=lambda:salvar_comando())
 
     # Combobox com as funções disponíveis
     ctk.CTkLabel(janela, text='Modbus:').pack(pady=5)
@@ -175,7 +175,7 @@ def comando(projeto, wid):
             # Cria as entradas de acordo com o parâmetro
             ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             entry = ctk.CTkEntry(frame_temp, width=100)
-            entry.insert(0, str(servidores[server]['configs']['ID'] if param == 'slave_id' else value))
+            entry.insert(0, value)
             entry.pack(side='right')
     
     def salvar_comando():
@@ -184,9 +184,10 @@ def comando(projeto, wid):
         
         # Pega o valor dos Combobox
         server = combo_server.get()
+        server_idx = str(servidores[server]['configs']['ID'])
         comando = combo_comando.get()
         # Dicionário com as informações
-        comando_dict = {'servidor': server, 'comando': comando, 'parametros': {}}
+        comando_dict = {'servidor': server, 'servidor_idx': server_idx, 'comando': comando, 'parametros': {}}
         # Pega a chave e valor
         for frame in frame_parametros.winfo_children()[1:]:
             label_widget = frame.winfo_children()[0]
@@ -196,4 +197,3 @@ def comando(projeto, wid):
             # Atualiza o widget
             comando_dict['parametros'][chave] = valor
         widget['comando'] = comando_dict
-        projeto.exibir()

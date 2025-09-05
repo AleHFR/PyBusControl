@@ -111,52 +111,44 @@ class customMenu(tk.Menu):
                          **kwargs)
 
 # Transformar em classe
-def customTopLevel(title, geometry=None, resizable=None, scrollbar=True, button_set=True, command=None, buttonName = None, closeWindow = True):
-    # Cria a janela
-    janela = ctk.CTkToplevel() # Usa a raiz padrão do CustomTkinter
-    janela.title(title)
-    janela.transient()
-    janela.grab_set()
+class customTopLevel(ctk.CTkToplevel):
+    def __init__(self, title, geometry=None, resizable=None, scrollbar=True, buttonSet=True, command=None, buttonName=None, closeWindow=False, **kwargs):
+        super().__init__(tk._default_root, **kwargs)
+        self.title(title)
+        self.transient(tk._default_root)
+        self.grab_set()
 
-    if geometry:
-        janela.geometry(f'{geometry[0]}x{geometry[1]}')
-    if resizable:
-        janela.resizable(resizable[0], resizable[1])
-    else:
-        janela.resizable(True, True) # Padrão mais flexível
-
-    def ok():
-        if command:
-            command()
-        if closeWindow:
-            janela.destroy()
-
-    if button_set:
-        frame_botao = ctk.CTkFrame(janela, fg_color="transparent")
-        frame_botao.pack(side='bottom', fill='x', padx=10, pady=(5, 10))
-
-        ctk.CTkButton(
-            frame_botao,
-            text=buttonName if buttonName else 'Aplicar',
-            command=ok
-        ).pack()
-
-    frame_interno = None
-    if scrollbar:frame_interno = ctk.CTkScrollableFrame(janela, label_text="")
-    else:frame_interno = ctk.CTkFrame(janela)
-    frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
-
-    return frame_interno
+        # Tamanho e redimensionamento
+        self.geometry(f'{geometry[0]}x{geometry[1]}' if geometry else '300x150')
+        if resizable:
+            self.resizable(resizable[0], resizable[1])
+        else:
+            self.resizable(True, True)
+        # Botão
+        if buttonSet:
+            frame_botao = ctk.CTkFrame(self, fg_color="transparent")
+            frame_botao.pack(side='bottom', fill='x', padx=10, pady=(5, 10))
+            def aplicar():
+                if command:
+                    command()
+                if closeWindow:
+                    self.destroy()
+            ctk.CTkButton(frame_botao, text=buttonName if buttonName else 'Aplicar', command=aplicar).pack()
+        # Frame interno
+        self.frame_interno = ctk.CTkScrollableFrame(self) if scrollbar else ctk.CTkFrame(self)
+        self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
 
 # Consertar
 def dica(texto:str=None):
     # Encontra a barra de ferrementas do projeto principal
     barra_ferramentas = None
     for widget in tk._default_root.winfo_children():
+        print(widget.winfo_class())
         if widget.winfo_class() == 'TLabelframe':
             barra_ferramentas = widget
     # Verifica se o label já existe
     for widget in barra_ferramentas.winfo_children():
+        print(widget.winfo_class())
         if widget.winfo_class() == 'TLabel':
             widget.config(text=texto if texto else 'Nenhuma Atividade')
 

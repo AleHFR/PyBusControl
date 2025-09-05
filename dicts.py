@@ -158,27 +158,23 @@ parametros_especiais = {
 funcoes = {
     'Write_Single_Coil': {
         'parametros': {
-            'slave_id': 0,
             'address': 0,
             'value': 0
         }
     },
     'Read_Single_Coil': {
         'parametros': {
-            'slave_id': 0,
             'start_address': 0,
         }
     },
     'Write_Single_Register': {
         'parametros': {
-            'slave_id': 0,
             'address': 0,
             'value': 0
         }
     },
     'Read_Single_Register': {
         'parametros': {
-            'slave_id': 0,
             'start_address': 0,
         }
     },
