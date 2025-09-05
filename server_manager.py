@@ -33,6 +33,7 @@ def configurar_servidores(projeto):
 
     # Pega os servidores existentes
     servidores = projeto.servidores
+    server_sel = None # Servidor selecionado
 
     # Frame para os servidores
     frame_servidores = ctk.CTkFrame(janela, width=150)
@@ -46,9 +47,9 @@ def configurar_servidores(projeto):
         'Adicionar TCP': {'command': lambda: adicionar_servidor('TCP'), 'image': 'tcp.png'},
         'Adicionar RTU': {'command': lambda: adicionar_servidor('RTU'), 'image': 'rtu.png'},
         'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
-        'Mudar Nome': {'command': lambda: mudar_nome(), 'image': 'edit.png'},
-        'Salvar': {'command': lambda: salvar_servidor(), 'image': 'save.png'},
-        'Remover': {'command': lambda: remover_servidor(), 'image': 'del.png'},
+        'Mudar Nome': {'command': lambda:mudar_nome(), 'image': 'edit.png'},
+        'Salvar': {'command': lambda:salvar_servidor(), 'image': 'save.png'},
+        'Remover': {'command': lambda:remover_servidor(), 'image': 'del.png'},
     }
     # Adiciona os botoes ao frame
     for key, value in btns.items():
@@ -71,6 +72,8 @@ def configurar_servidores(projeto):
 
     # Função para atualizar os parâmetros de acordo com o servidor selecionado
     def atualizar_campos(server):
+        nonlocal server_sel
+        server_sel = server
         configs = servidores[server]['configs']
         # Verifica se tem algum servidor selecionado
         for bt in lista.winfo_children():
@@ -127,28 +130,28 @@ def configurar_servidores(projeto):
 
     # Função para mudar o nome de um servidor
     def mudar_nome():
+        nonlocal server_sel
         # Verifica se tem algum servidor selecionado
-        if not server:
+        if not server_sel:
             return
         
         novo_nome = ctk.CTkInputDialog(text='Novo nome:', title='Insira o novo nome do servidor').get_input()
         # Verifica se o novo nome é válido
-        if novo_nome and novo_nome != server and novo_nome not in projeto.servidores:
-            projeto.novoNome_servidor(server, novo_nome)
+        if novo_nome and novo_nome != server_sel and novo_nome not in projeto.servidores:
+            projeto.novoNome_servidor(server_sel, novo_nome)
             for bt in lista.winfo_children():
-                if bt.cget('text') == server:
-                    server = novo_nome
+                if bt.cget('text') == server_sel:
+                    server_sel = novo_nome
                     bt.configure(text=novo_nome)
         else:
             messagebox.showwarning('Erro', 'Nome inválido ou nome duplicado')
 
     def salvar_servidor():
+        nonlocal server_sel
         # Verifica se tem algum servidor selecionado
-        if not server:
+        if not server_sel:
             return
-        
-        # Usar a seleção atual
-        nome_servidor = server
+
         # Pega a chave e valor
         for frame in frame_parametros.winfo_children()[1:]:
             # O primeiro é o CTkLabel e o segundo é a entrada
@@ -158,20 +161,21 @@ def configurar_servidores(projeto):
             # Salva as configurações
             chave = label_widget.cget('text').replace(':', '')
             valor = entry_widget.get()
-            projeto.config_servidor(nome_servidor, chave, valor)
+            projeto.config_servidor(server_sel, chave, valor)
 
     # Função para remover um servidor
     def remover_servidor():
+        nonlocal server_sel
         # Verifica se tem algum servidor selecionado
-        if not server:
+        if not server_sel:
             return
         
         # Remove o servidor
-        if cw.customDialog('Remover Servidor', f'Deseja remover o servidor {server}?') == True:
+        if cw.customDialog('Remover Servidor', f'Deseja remover o servidor {server_sel}?'):
             for bt in lista.winfo_children():
-                if bt.cget('text') == server:
+                if bt.cget('text') == server_sel:
                     bt.destroy()
-            projeto.del_servidor(server)
+            projeto.del_servidor(server_sel)
             
             for widget in frame_parametros.winfo_children()[1:]:
                 widget.destroy()

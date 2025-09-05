@@ -58,14 +58,14 @@ class customSpinbox(ctk.CTkFrame):
 import customtkinter as ctk
 
 class customDialog(ctk.CTkToplevel):
-    def __init__(self, root, title: str, message: str, **kwargs):
-        super().__init__(root, **kwargs)
+    def __init__(self, title: str, message: str, **kwargs):
+        super().__init__(tk._default_root, **kwargs)
         self.geometry("300x150")
         self.resizable(False, False)
         self.title(title)
 
         # Modal
-        self.transient(root)
+        self.transient(tk._default_root)
         self.grab_set()
 
         # Variáveis
@@ -75,11 +75,11 @@ class customDialog(ctk.CTkToplevel):
         self._build_()
 
     def _build_(self):
-        def on_yes(self):
+        def on_yes():
             self.result = True
             self.destroy()
 
-        def on_no(self):
+        def on_no():
             self.result = False
             self.destroy()
 
@@ -89,10 +89,10 @@ class customDialog(ctk.CTkToplevel):
         button_frame = ctk.CTkFrame(self, fg_color="transparent")
         button_frame.pack(pady=(0, 5))
 
-        yes_button = ctk.CTkButton(button_frame, text="Sim", command=lambda:on_yes(self), width=100)
+        yes_button = ctk.CTkButton(button_frame, text="Sim", command=lambda:on_yes(), width=100)
         yes_button.pack(side="left", padx=10)
 
-        no_button = ctk.CTkButton(button_frame, text="Não", command=lambda:on_no(self), width=100)
+        no_button = ctk.CTkButton(button_frame, text="Não", command=lambda:on_no(), width=100)
         no_button.pack(side="left", padx=10)
         
         self.wait_window()
@@ -110,6 +110,7 @@ class customMenu(tk.Menu):
                          activebackground=activebg, activeforeground=activefg,
                          **kwargs)
 
+# Transformar em classe
 def customTopLevel(title, geometry=None, resizable=None, scrollbar=True, button_set=True, command=None, buttonName = None, closeWindow = True):
     # Cria a janela
     janela = ctk.CTkToplevel() # Usa a raiz padrão do CustomTkinter
@@ -147,6 +148,7 @@ def customTopLevel(title, geometry=None, resizable=None, scrollbar=True, button_
 
     return frame_interno
 
+# Consertar
 def dica(texto:str=None):
     # Encontra a barra de ferrementas do projeto principal
     barra_ferramentas = None
@@ -166,32 +168,6 @@ def imagem(nome, tamanho_icone=None):
         image = image.resize((tamanho_icone))
     image = ImageTk.PhotoImage(image)
     return image
-
-def preferencias(): # Passe a janela principal como argumento
-    # 1. Cria a janela Toplevel (janela secundária)
-    janela = customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
-
-    # --- Frame para o Modo de Aparência (Light/Dark) ---
-    frame_modo = ctk.CTkFrame(janela)
-    frame_modo.pack(pady=10, padx=15, fill="x")
-
-    ctk.CTkLabel(frame_modo, text='Modo de Aparência:').pack(padx=10, pady=5, side='left')
-    
-    modos = ['Light', 'Dark', 'System']
-    modo_sel = ctk.CTkComboBox(frame_modo, values=modos, state='readonly', width=120)
-    modo_sel.pack(padx=10, pady=5, side='right')
-    modo_sel.set(ctk.get_appearance_mode()) # Pega o modo atual e define no ComboBox
-
-    # --- Frame para o Tema de Cores ---
-    frame_tema = ctk.CTkFrame(janela)
-    frame_tema.pack(pady=10, padx=15, fill="x")
-
-    # --- Botão Aplicar ---
-    def aplicar():
-        # Pega os valores selecionados e aplica
-        novo_modo = modo_sel.get().lower()
-        
-        ctk.set_appearance_mode(novo_modo)
 
 def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
     values_orig = values[:]  # cópia para evitar alterar lista original

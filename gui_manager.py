@@ -150,3 +150,28 @@ def tela_cheia(root):
         root.bind('<Escape>', lambda e: tela_cheia(root))
     else:
         root.unbind('<Escape>')
+
+def preferencias():
+    janela = cw.customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', closeWindow=False, command=lambda:aplicar())
+
+    # --- Frame para o Modo de Aparência (Light/Dark) ---
+    frame_modo = ctk.CTkFrame(janela)
+    frame_modo.pack(pady=10, padx=15, fill="x")
+
+    ctk.CTkLabel(frame_modo, text='Modo de Aparência:').pack(padx=10, pady=5, side='left')
+    
+    modos = ['Light', 'Dark', 'System']
+    modo_sel = ctk.CTkComboBox(frame_modo, values=modos, state='readonly', width=120)
+    modo_sel.pack(padx=10, pady=5, side='right')
+    modo_sel.set(ctk.get_appearance_mode()) # Pega o modo atual e define no ComboBox
+
+    # --- Frame para o Tema de Cores ---
+    frame_tema = ctk.CTkFrame(janela)
+    frame_tema.pack(pady=10, padx=15, fill="x")
+
+    # --- Botão Aplicar ---
+    def aplicar():
+        # Pega os valores selecionados e aplica
+        novo_modo = modo_sel.get().lower()
+        
+        ctk.set_appearance_mode(novo_modo)

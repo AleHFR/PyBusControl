@@ -25,7 +25,7 @@ widgets_padrao = {
             'corner_radius': 6,
             'border_width': 0,
             'border_spacing': 2,
-            'fg_color': "#FFFFFF",
+            'fg_color': "#BEBEBE",
             'hover_color': '#325882',
             'border_color': None,
             'text_color': "#000000",
@@ -133,19 +133,31 @@ traducoes_parametros = {
 }
 
 parametros_especiais = {
-    'cores': ['text_color', 'fg_color', 'hover_color', 'border_color', 'text_color_disabled', 'progress_color', 'button_color', 'button_hover_color'],
+    'cores': [
+        'text_color',
+        'fg_color',
+        'hover_color',
+        'border_color',
+        'text_color_disabled',
+        'progress_color',
+        'button_color',
+        'button_hover_color'
+    ],
     'pre-definidos': {
         'compound': ['left', 'right', 'top', 'bottom', 'center'],
         'anchor': ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center'],
         'state': ['normal', 'disabled'],
         'orientation': ['horizontal', 'vertical']
+    },
+    'font': {
+        'styles': ['normal', 'bold', 'italic', 'bold italic', 'underline', 'overstrike'],
+        'sizes': ['8', '10', '12', '14', '16', '18', '20', '24', '30']
     }
 }
 
 funcoes = {
     'Write_Single_Coil': {
         'parametros': {
-            'server': '',
             'slave_id': 0,
             'address': 0,
             'value': 0
@@ -153,15 +165,12 @@ funcoes = {
     },
     'Read_Single_Coil': {
         'parametros': {
-            'server': '',
             'slave_id': 0,
             'start_address': 0,
-            'num_coils': 0
         }
     },
-    'Write_Single_Registe': {
+    'Write_Single_Register': {
         'parametros': {
-            'server': '',
             'slave_id': 0,
             'address': 0,
             'value': 0
@@ -169,10 +178,8 @@ funcoes = {
     },
     'Read_Single_Register': {
         'parametros': {
-            'server': '',
             'slave_id': 0,
             'start_address': 0,
-            'num_registers': 0
         }
     },
 }

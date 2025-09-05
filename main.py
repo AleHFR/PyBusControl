@@ -14,7 +14,6 @@ ctk.set_appearance_mode('light')
 # Icone
 root.iconphoto(True, cw.imagem('pbc.png'))
 # Estilo
-# style = ttk.Style(root)
 
 ########## Configura conforme o sistema operacional ##########
 def maximizar_janela():
@@ -33,7 +32,7 @@ menu_arquivo = cw.customMenu(menu_bar)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:gm.novo_projeto(root))
 menu_arquivo.add_separator()
-menu_arquivo.add_command(label="Preferências", command=lambda:cw.preferencias())
+menu_arquivo.add_command(label="Preferências", command=lambda:gm.preferencias())
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
 ##########  ##########

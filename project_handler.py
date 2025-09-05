@@ -16,6 +16,10 @@ class Projeto:
         self.notebook.pack(side='bottom', fill='both', expand=True)
         self.abas = {}
         self.servidores = {}
+    
+    def exibir(self):
+        print(self.abas)
+        print(self.servidores)
 
     #################### Trabalhando com as abas do Notebook ####################
     ########## Adiciona uma aba no notebook ##########
@@ -56,8 +60,9 @@ class Projeto:
             if not valor:
                 return
             nome = self.notebook.tab(aba, 'text')
-            self.abas[nome]['img'] = cw.imagem(valor)
-            self.abas[nome]['canvas'].image_ref = self.abas[nome]['img']
+            self.abas[nome]['imagem'] = valor
+            imagem = cw.imagem(valor)
+            self.abas[nome]['canvas'].image_ref = imagem
             self.abas[nome]['canvas'].create_image(self.abas[nome]['canvas'].winfo_width()/2,
                                                   self.abas[nome]['canvas'].winfo_height()/2,
                                                   image=self.abas[nome]['canvas'].image_ref,
@@ -179,7 +184,7 @@ class Projeto:
             context_menu.add_command(label='Mover', command=lambda:self.move_widget(wid))
             context_menu.add_command(label='Comando', command=lambda:wm.comando(self, wid))
             context_menu.add_command(label='Visual', command=lambda:wm.visual_widget(self, wid))
-            context_menu.add_command(label='Excluir', command=lambda:self.delete_widget(wid))
+            context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
         # Adiciona o widget na visualização
         classeCTk = getattr(ctk, classe)
@@ -188,22 +193,23 @@ class Projeto:
         # Cria o bind do menu de contexto
         widget.bind('<Button-3>', lambda event: menuContexto_widget(event))
         # Salva no projeto
-        self.abas[nome_aba]['widgets'][wid] = {'classe':classeCTk, 'item':widget, 'x':x, 'y':y, 'server':None, 'comando':None, 'propriedades':propriedades}
+        self.abas[nome_aba]['widgets'][wid] = {'item':widget, 'classe':classe, 'x':x, 'y':y, 'comando':None, 'propriedades':propriedades}
         
         return wid
 
     ########## Configurar o widget ##########
     def config_widget(self, wid, prop, novo_valor):
+        print(f'Configurar widget {wid}: {prop} = {novo_valor}')
         # Encontra aba atual
         nome_aba = self.notebook.tab(self.notebook.select(), 'text')
+        # Altera o widget no projeto
+        props = self.abas[nome_aba]['widgets'][wid]['propriedades']
+        props[prop] = novo_valor
         # Altera o widget na visualização
         widget = self.abas[nome_aba]['widgets'][wid]['item']
-        widget.config(**{prop: novo_valor})
-        # Altera o widget no projeto
-        widget = self.abas[nome_aba]['widgets'][wid]
-        if prop == 'image':
+        if prop == 'image': # Trata o valor se for imagem
             novo_valor = cw.imagem(novo_valor)
-        widget['propriedades'][prop] = novo_valor
+        widget.configure(**props)
 
     ########## Move o widget ##########
     def move_widget(self, wid):
