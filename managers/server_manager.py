@@ -4,25 +4,12 @@ import customtkinter as ctk
 from tkinter import messagebox
 from tktooltip import ToolTip
 import serial.tools.list_ports
+import asyncio
 
 # Imports do projeto
-import custom_widgets as cw
-
-
-# Dicionário com as opções para os Combobox
-selecionaveis = {
-    'Conexão': ['TCP', 'RTU'],
-    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
-    'Paridade': ['N', 'P', 'I'],
-    'Bytesize': ['8', '7'],
-    'Stopbits': ['1', '2']
-}
-
-# Estruturas padrão para cada tipo de servidor
-estrutura_servidor = {
-    'TCP': {'ID':1, 'IP': '127.168.0.1', 'Porta': 502, 'Timeout (s)': 1},
-    'RTU': {'ID':1, 'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
-}
+import PyBusControl.interface.personalized as cw
+import dicts as dt
+from async_loop import loop
 
 # Dicionário para salvar os icones das imagens
 imagens = {}
@@ -96,13 +83,13 @@ def configurar_servidores(projeto):
             ctk.CTkLabel(frame_temp, text=f'{param}:').pack(side='left')
             # Cria as combobox de acordo com o parâmetro
             entry = None
-            if param in selecionaveis.keys() or param == 'Porta Serial':
+            if param in dt.selecionaveis_modbus.keys() or param == 'Porta Serial':
                 # Adiciona as portas seriais de acordo com o sistema operacional
                 if param == 'Porta Serial':
                     portas = [p.device for p in serial.tools.list_ports.comports()]
                     entry = ctk.CTkComboBox(frame_temp, values=portas, width=100)
                 else:
-                    entry = ctk.CTkComboBox(frame_temp, values=selecionaveis[param], width=100)
+                    entry = ctk.CTkComboBox(frame_temp, values=dt.selecionaveis_modbus[param], width=100)
                     entry.configure(state='readonly')
                 entry.set(value)
             else:
@@ -118,7 +105,7 @@ def configurar_servidores(projeto):
         def aplicar(nome, tipo): # Função para criar um servidor usando as configs padrão
             if nome != ''and nome not in projeto.servidores:
                 if tipo:
-                    projeto.add_servidor(nome, tipo, estrutura_servidor[tipo].copy())
+                    projeto.add_servidor(nome, tipo, dt.estrutura_servidor[tipo].copy())
                 else:
                     messagebox.showwarning('Erro', 'Selecione uma conexão')
                     return
@@ -182,5 +169,13 @@ def configurar_servidores(projeto):
 
 # Função para conectar os servidores
 def conectar_servidores(projeto):
-    for server in projeto.servidores.keys():
-        projeto.conectar_servidor(server)
+    operacao = asyncio.run_coroutine_threadsafe(conectar(projeto),loop)
+    operacao.add_done_callback(resultado(projeto))
+async def conectar(projeto):
+    # Cria uma lista de coroutines (tarefas)
+    tarefas = [projeto.conectar_servidor(server) for server in projeto.servidores.keys()]
+    # Executa todas as tarefas de forma assíncrona
+    await asyncio.gather(*tarefas)
+def resultado(projeto):
+    for servidor in projeto.servidores.keys():
+        print(projeto.servidores[servidor]['status'])

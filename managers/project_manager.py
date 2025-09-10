@@ -1,18 +1,18 @@
 ########### Preâmbulo ###########
 # Imports do python
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
 from tkinter import messagebox
 from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
 
 # Imports do projeto
-import widget_manager as wm
-import custom_widgets as cw
+import managers.widget_manager as wm
+import PyBusControl.interface.personalized as cw
+import dicts as dt
 
 class Projeto:
     def __init__(self, root):
-        self.notebook = ttk.Notebook(root)
+        self.notebook = cw.customNotebook(root)
         self.notebook.pack(side='bottom', fill='both', expand=True)
         self.abas = {}
         self.servidores = {}
@@ -32,12 +32,12 @@ class Projeto:
         y = 780
         # Adiciona uma aba
         frame = ctk.CTkFrame(self.notebook)
-        canvas = tk.Canvas(frame, width=x, height=y, bg='white', borderwidth=0, highlightthickness=0)
+        canvas = tk.Canvas(frame, width=x, height=y, bg='white', borderwidth=2)
         canvas.pack()
         self.notebook.add(frame, text=nome)
         self.notebook.select(frame)
         # Guarda no projeto
-        self.abas[nome] = {'canvas': canvas, 'widgets': {}, 'tamanho': (x, y), 'imagem': ''}
+        self.abas[nome] = {'canvas': canvas, 'tamanho': (x, y), 'imagem': '', 'widgets': {}}
 
     ########## Configura uma aba no notebook ##########
     def config_aba(self, chave, valor):
@@ -79,80 +79,82 @@ class Projeto:
     ########## Adicionar um servidor ##########
     def add_servidor(self, nome_servidor, conexao, configs):
         if nome_servidor not in self.servidores.keys():
-            self.servidores[nome_servidor] = {'conexao':conexao, 'client':None, 'configs':configs}
+            self.servidores[nome_servidor] = {'conexao':conexao, 'client':None, 'status':False, 'configs':configs}
 
     ########## Conecta a um servidor ##########
-    def conectar_servidor(self, nome_servidor):
+    async def conectar_servidor(self, nome_servidor):
         if nome_servidor in self.servidores.keys():
             servidor = self.servidores[nome_servidor]
             configs = servidor['configs']
-            conectar()
-            async def conectar():
-                if servidor['conexao'] == 'TCP':
-                    servidor['client'] = AsyncModbusTcpClient(
-                        host=configs['IP'],
-                        port=configs['Porta'],
-                        timeout=int(configs['Timeout (s)'])
-                    )
-                elif servidor['conexao'] == 'RTU':
-                    servidor['client'] = AsyncModbusSerialClient(
-                        port=configs['Porta Serial'],
-                        baudrate=int(configs['Baudrate']),
-                        bytesize=int(configs['Bytesize']),
-                        parity=configs['Paridade'],
-                        stopbits=int(configs['Stopbits']),
-                        timeout=int(configs['Timeout (s)'])
-                    )
-                await servidor['client'].connect()
-                return servidor['client'].connected
-    
+            client = None
+            if servidor['conexao'] == 'TCP':
+                client = AsyncModbusTcpClient(
+                    host=configs['IP'],
+                    port=configs['Porta'],
+                    timeout=int(configs['Timeout (s)'])
+                )
+            elif servidor['conexao'] == 'RTU':
+                client = AsyncModbusSerialClient(
+                    port=configs['Porta Serial'],
+                    baudrate=int(configs['Baudrate']),
+                    bytesize=int(configs['Bytesize']),
+                    parity=configs['Paridade'],
+                    stopbits=int(configs['Stopbits']),
+                    timeout=int(configs['Timeout (s)'])
+            )
+            servidor['client'] = client
+            conexao = await servidor['client'].connect()
+            if conexao: servidor['status'] = conexao
+
     ########## Desconecta um servidor ##########
-    def desconectar_servidor(self, nome_servidor):
+    async def desconectar_servidor(self, nome_servidor):
         servidor = self.servidores[nome_servidor]
         client = servidor['client']
-        desconectar_servidor()
-        async def desconectar_servidor():
-            if client and client.connected:
-                client.close()
+        conexao = await client.close()
+        if conexao: servidor['status'] = conexao
 
-    def command_servidor(self, nome_servidor, commando, address, value=None):
+    ########## Envia um comando ao servidor ##########
+    async def command_servidor(self, nome_servidor, commando, address, device_id=None, value=None):
         servidor = self.servidores[nome_servidor]
         client = servidor['client']
-        configs = servidor['configs']
-        if commando == 'Read_Single_Coil':
-            Read_Single_Coil()
-        elif commando == 'Write_Single_Coil':
-            Write_Single_Coil()
-        elif commando == 'Read_Single_Register':
-            Read_Single_Register()
-        elif commando == 'Write_Single_Register':
-            Write_Single_Register()
+        # Trata os dados
+        address = int(address)
+        value = bool(value.lower())
+        # Configurar depois pro servidor RTU
+        async def read_coil():
+            if client and client.connected:
+                valor = await client.read_coils(address=address, count=1, device_id=device_id)
+                return valor.bits[0] if not valor.isError() else None
+            return None
+
+        async def write_coil():
+            if client and client.connected:
+                await client.write_coil(address=address, device_id=device_id, value=value)
+                return True
+            return False
+
+        async def read_register():
+            if client and client.connected:
+                valor = await client.read_holding_registers(address=address, count=1, device_id=device_id)
+                return valor.registers[0] if not valor.isError() else None
+            return None
+
+        async def write_register():
+            if client and client.connected:
+                await client.write_register(address=address, device_id=device_id, value=value)
+                return True
+            return 
         
-        async def Read_Single_Coil():
-            if client and client.connected:
-                valor = await client.read_coils(address=address, slave=configs['ID'], count=1)
-                if not valor.isError():
-                    return valor.bits[0]
-            return None
-
-        async def Write_Single_Coil():
-            if client and client.connected:
-                await client.write_coil(address=address, slave=configs['ID'], value=value)
-                return True
-            return False
-
-        async def Read_Single_Register():
-            if client and client.connected:
-                valor = await client.read_holding_registers(address=address, slave=configs['ID'], count=1)
-                if not valor.isError():
-                    return valor.registers[0]
-            return None
-
-        async def Write_Single_Register():
-            if client and client.connected:
-                await client.write_register(address=address, slave=configs['ID'], value=value)
-                return True
-            return False
+        funcoes_modbus = {
+            'Read_Single_Coil': read_coil,
+            'Write_Single_Coil': write_coil,
+            'Read_Single_Register': read_register,
+            'Write_Single_Register': write_register
+        }
+        
+        # Verifica se o comando existe e executa a função correspondente
+        if commando in funcoes_modbus:
+            return await funcoes_modbus[commando]()
 
     ########## Mudar o nome do servidor ##########
     def novoNome_servidor(self, nome_servidor, novo_nome_servidor):
@@ -182,8 +184,8 @@ class Projeto:
         def menuContexto_widget(event):
             context_menu = cw.customMenu(canvas_atual)
             context_menu.add_command(label='Mover', command=lambda:self.move_widget(wid))
-            context_menu.add_command(label='Comando', command=lambda:wm.comando(self, wid))
-            context_menu.add_command(label='Visual', command=lambda:wm.visual_widget(self, wid))
+            context_menu.add_command(label='Comando', command=lambda:wm.configurar_comando(self, wid))
+            context_menu.add_command(label='Visual', command=lambda:wm.configurar_visual(self, wid))
             context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
         # Adiciona o widget na visualização
@@ -199,7 +201,6 @@ class Projeto:
 
     ########## Configurar o widget ##########
     def config_widget(self, wid, prop, novo_valor):
-        print(f'Configurar widget {wid}: {prop} = {novo_valor}')
         # Encontra aba atual
         nome_aba = self.notebook.tab(self.notebook.select(), 'text')
         # Altera o widget no projeto
@@ -209,16 +210,22 @@ class Projeto:
         widget = self.abas[nome_aba]['widgets'][wid]['item']
         if prop == 'image': # Trata o valor se for imagem
             novo_valor = cw.imagem(novo_valor)
-        widget.configure(**props)
+            widget.configure(image=novo_valor)
+        elif prop == 'font': # Trata o valor se for fonte
+            novo_valor = ctk.CTkFont(family=novo_valor[0], size=int(novo_valor[1]))
+            widget.configure(font=novo_valor)
+        else:
+            widget.configure(**{prop:novo_valor})
 
     ########## Move o widget ##########
     def move_widget(self, wid):
-        # Dica
-        cw.dica('Clique e arraste para mover o widget')
         # posição inicial do item no canvas
         nome_aba = self.notebook.tab(self.notebook.select(), 'text')
         canvas_atual = self.abas[nome_aba]['canvas']
         x0, y0 = canvas_atual.coords(wid)
+        # Dica
+        dica = cw.ClickTooltip(canvas_atual, text='Clique e arraste para mover o widget')
+        dica.show_tooltip()
 
         # calcula offset entre clique e posição do widget
         def iniciar(event):
@@ -249,12 +256,11 @@ class Projeto:
             canvas_atual.unbind('<Motion>')
             canvas_atual.unbind('<ButtonRelease-1>')
             canvas_atual._drag_data = {}
-            cw.dica()
+            dica.hide_tooltip()
 
         # espera o clique esquerdo pra começar arrastar
         canvas_atual.bind('<Button-1>', iniciar)
         
-
     ########## Deletar um widget ##########
     def del_widget(self, wid):
         nome_aba = self.notebook.tab(self.notebook.select(), 'text')

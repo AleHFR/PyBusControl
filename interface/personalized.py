@@ -2,7 +2,46 @@ import os
 import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
+
+# arrumar
+class customMenu(tk.Menu):
+    def __init__(self, root, **kwargs):
+        # bg = ctk.ThemeManager.theme["CTkLabel"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["fg_color"][1]
+        # fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
+        # activebg = ctk.ThemeManager.theme["CTkButton"]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["hover_color"][1]
+        # activefg = ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
+
+        super().__init__(root, tearoff=0, **kwargs)
+
+class customLabelFrame(ttk.LabelFrame):
+    def __init__(self, root, **kwargs):
+        # Adapta ao tema do customtkinter
+        bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
+        fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
+
+        # Cria estilo personalizado
+        style = ttk.Style()
+        style.configure("Custom.TLabelframe", background=bg, foreground=fg)
+        style.configure("Custom.TLabelframe.Label", background=bg, foreground=fg)
+
+        # Inicializa o LabelFrame com o estilo
+        super().__init__(root, style="Custom.TLabelframe", **kwargs)
+
+
+class customNotebook(ttk.Notebook):
+    def __init__(self, root, **kwargs):
+        # Adapta ao tema do customtkinter
+        bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
+        fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
+
+        # Cria estilo personalizado
+        style = ttk.Style()
+        style.configure("Custom.TNotebook", background=bg, foreground=fg)
+        style.configure("Custom.TNotebook.Tab", background=bg, foreground=fg)
+
+        # Inicializa o Notebook com o estilo
+        super().__init__(root, style="Custom.TNotebook", **kwargs)
 
 class customSpinbox(ctk.CTkFrame):
     def __init__(self, master, min_value=0, max_value=100, step=1, initial_value=0, width=100, **kwargs):
@@ -14,16 +53,16 @@ class customSpinbox(ctk.CTkFrame):
         self.value = initial_value
         
         # Botão de decremento
-        self.decrement_button = ctk.CTkButton(self, text="-", width=15, command=self.decrement)
+        self.decrement_button = ctk.CTkButton(self, text="-", width=25, command=self.decrement)
         self.decrement_button.pack(side="left")
         
         # Entrada de texto para o valor
-        self.entry = ctk.CTkEntry(self, width=width-50)
-        self.entry.pack(side="left")
+        self.entry = ctk.CTkEntry(self, width=width-60)
+        self.entry.pack(side="left", anchor='center', padx=5)
         self.entry.insert(0, str(self.value))
         
         # Botão de incremento
-        self.increment_button = ctk.CTkButton(self, text="+", width=15, command=self.increment)
+        self.increment_button = ctk.CTkButton(self, text="+", width=25, command=self.increment)
         self.increment_button.pack(side="left")
         
     def increment(self):
@@ -54,8 +93,6 @@ class customSpinbox(ctk.CTkFrame):
             return int(self.entry.get())
         except ValueError:
             return None
-
-import customtkinter as ctk
 
 class customDialog(ctk.CTkToplevel):
     def __init__(self, title: str, message: str, **kwargs):
@@ -98,28 +135,6 @@ class customDialog(ctk.CTkToplevel):
         self.wait_window()
         return self.result
 
-class customMenu(tk.Menu):
-    def __init__(self, root, **kwargs):
-        ref = "CTkButton"
-        bg = ctk.ThemeManager.theme[ref]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["fg_color"][1]
-        fg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
-        activebg = ctk.ThemeManager.theme[ref]["hover_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["hover_color"][1]
-        activefg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
-
-        super().__init__(root, tearoff=0, bg=bg, fg=fg,
-                         activebackground=activebg, activeforeground=activefg,
-                         **kwargs)
-
-class customLabelFrame(ttk.LabelFrame):
-    def __init__(self, root, **kwargs):
-        ref = "CTkButton"
-        bg = ctk.ThemeManager.theme[ref]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["fg_color"][1]
-        fg = ctk.ThemeManager.theme[ref]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
-        style = ttk.Style()
-        style.configure("TLabelFrame", background=bg, foreground=fg)
-        super().__init__(root, **kwargs)
-
-# Transformar em classe
 class customTopLevel(ctk.CTkToplevel):
     def __init__(self, title, geometry=None, resizable=None, scrollbar=True, buttonSet=True, command=None, buttonName=None, **kwargs):
         super().__init__(tk._default_root, **kwargs)
@@ -145,27 +160,60 @@ class customTopLevel(ctk.CTkToplevel):
         self.frame_interno = ctk.CTkScrollableFrame(self) if scrollbar else ctk.CTkFrame(self)
         self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
 
-# Consertar
-def dica(texto:str=None):
-    # Encontra a barra de ferrementas do projeto principal
-    barra_ferramentas = None
-    for widget in tk._default_root.winfo_children():
-        print(widget.winfo_class())
-        if widget.winfo_class() == 'TLabelframe':
-            barra_ferramentas = widget
-    # Verifica se o label já existe
-    for widget in barra_ferramentas.winfo_children():
-        print(widget.winfo_class())
-        if widget.winfo_class() == 'TLabel':
-            widget.config(text=texto if texto else 'Nenhuma Atividade')
+class ClickTooltip(ctk.CTkToplevel):
+    def __init__(self, master, text="Tooltip", **kwargs):
+        super().__init__(master, **kwargs)
+        self.master = master
+        self.text = text
+        self.visible = False
+        
+        self.withdraw()
+        self.overrideredirect(True)
+        self.attributes('-topmost', True)
+        # self.configure(fg_color="#363636", bg_color="#363636")
+
+        self.label = ctk.CTkLabel(self, text=self.text, fg_color="transparent")
+        self.label.pack(padx=8, pady=4)
+
+    def show_tooltip(self, event=None):
+        if not self.visible:
+            self.visible = True
+            # Mostra a tooltip e a posiciona
+            self.deiconify()
+            self.update_position(event)
+            
+            # Liga o evento de movimento e clique para seguir e esconder a tooltip
+            self.master.bind("<Motion>", self.update_position)
+            self.master.bind("<Button-1>", self.hide_tooltip)
+            self.master.bind("<Button-3>", self.hide_tooltip)
+            
+            # Se for um evento de botão, desabilita a propagação para evitar o ocultamento imediato
+            if event and isinstance(event.widget, ctk.CTkButton):
+                self.after(1, lambda: event.widget.unbind("<Button-1>"))
+
+    def hide_tooltip(self, event=None):
+        if self.visible:
+            # Desliga os eventos de rastreamento do mouse e de clique
+            self.master.unbind("<Motion>")
+            self.master.unbind("<Button-1>")
+            self.master.unbind("<Button-3>")
+            
+            # Esconde a tooltip
+            self.withdraw()
+            self.visible = False
+            self.destroy()
+
+    def update_position(self, event):
+        x = self.master.winfo_pointerx() + 15
+        y = self.master.winfo_pointery() + 15
+        self.geometry(f"+{x}+{y}")
+        self.update_idletasks()
 
 def imagem(nome, tamanho_icone=None):
     caminho_icone = os.path.join(os.path.dirname(__file__), 'assets', nome)
     image = Image.open(caminho_icone)
-    # Muda a cor da imagem
-    if tamanho_icone:
-        image = image.resize((tamanho_icone))
-    image = ImageTk.PhotoImage(image)
+    if tamanho_icone:image = ctk.CTkImage(light_image=image, dark_image=image, size=tamanho_icone)
+    else: image = ctk.CTkImage(light_image=image, dark_image=image)
     return image
 
 def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):

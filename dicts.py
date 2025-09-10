@@ -27,7 +27,7 @@ widgets_padrao = {
             'border_spacing': 2,
             'fg_color': "#BEBEBE",
             'hover_color': '#325882',
-            'border_color': None,
+            'border_color': '#909090',
             'text_color': "#000000",
             'text_color_disabled': '#909090',
             'image': None,
@@ -67,7 +67,6 @@ widgets_padrao = {
         'classe': 'CTkCheckBox',
         'propriedades': {
             'text': 'Opção',
-            'variable': None,
             'onvalue': 1,
             'offvalue': 0,
             'font': ('Roboto', 13),
@@ -85,7 +84,6 @@ widgets_padrao = {
         'classe': 'CTkSwitch',
         'propriedades': {
             'text': 'Opção',
-            'variable': None,
             'onvalue': 1,
             'offvalue': 0,
             'font': ('Roboto', 13),
@@ -131,6 +129,7 @@ traducoes_parametros = {
     'onvalue': 'Valor Ligado',
     'offvalue': 'Valor Desligado'
 }
+traducoes_reverse = {v: k for k, v in traducoes_parametros.items()}
 
 parametros_especiais = {
     'cores': [
@@ -152,19 +151,46 @@ parametros_especiais = {
     'font': {
         'styles': ['normal', 'bold', 'italic', 'bold italic', 'underline', 'overstrike'],
         'sizes': ['8', '10', '12', '14', '16', '18', '20', '24', '30']
-    }
+    },
+    'numericos':[
+        'width',
+        'height',
+        'corner_radius',
+        'border_width',
+        'border_spacing',
+        'from_',
+        'to',
+        'number_of_steps',
+        'padx',
+        'pady'
+    ]
 }
 
-funcoes = {
+# Dicionário com as opções para os Combobox
+selecionaveis_modbus = {
+    'Conexão': ['TCP', 'RTU'],
+    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
+    'Paridade': ['N', 'P', 'I'],
+    'Bytesize': ['8', '7'],
+    'Stopbits': ['1', '2']
+}
+
+# Estruturas padrão para cada tipo de servidor
+estrutura_servidor = {
+    'TCP': {'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1},
+    'RTU': {'ID':1, 'Porta Serial': 'COM3', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
+}
+
+funcoes_modbus = {
     'Write_Single_Coil': {
         'parametros': {
             'address': 0,
-            'value': 0
+            'value': ['False','True']
         }
     },
     'Read_Single_Coil': {
         'parametros': {
-            'start_address': 0,
+            'address': 0,
         }
     },
     'Write_Single_Register': {
@@ -175,7 +201,7 @@ funcoes = {
     },
     'Read_Single_Register': {
         'parametros': {
-            'start_address': 0,
+            'address': 0,
         }
     },
 }

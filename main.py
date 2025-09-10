@@ -4,16 +4,16 @@ import customtkinter as ctk
 import platform
 
 # Imports do projeto
-import gui_manager as gm
-import custom_widgets as cw
+import interface.gui_principal as gm
+import PyBusControl.interface.personalized as cw
+
+########## Loop pra rodar os servidores em background ##########
+import async_loop
 
 ########## Janela principal ##########
 root = ctk.CTk()
 root.title('PyBusControl')
 ctk.set_appearance_mode('light')
-# Icone
-root.iconphoto(True, cw.imagem('pbc.png'))
-# Estilo
 
 ########## Configura conforme o sistema operacional ##########
 def maximizar_janela():

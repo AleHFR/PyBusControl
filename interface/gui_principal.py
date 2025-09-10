@@ -5,10 +5,10 @@ from tktooltip import ToolTip
 from tkinter import messagebox, filedialog
 
 # Imports do projeto
-import custom_widgets as cw
-import project_handler as pj
-import widget_manager as wm
-import server_manager as sm
+import PyBusControl.interface.personalized as cw
+import handlers.project_handler as pj
+import managers.widget_manager as wm
+import managers.server_manager as sm
 
 imagens = {}
 
@@ -69,12 +69,8 @@ def novo_projeto(root):
         bt.pack(side='left', padx=1, pady=2)
         ToolTip(bt, msg=nome_botao)
 
-    # Cria um texto de suporte
-    ctk.CTkLabel(barra_ferramentas, text='Nenhuma Atividade').pack(side='right', padx=5)
-
-    # Adiciona umas coias para testes
-    projeto.add_servidor('Esp32', 'TCP', {'ID':1, 'IP': '127.168.0.3', 'Porta': 1502, 'Timeout (s)': 1})
-    projeto.add_servidor('ArdUNO', 'RTU', {'ID':2, 'Porta Serial': 'COM1', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1})
+    # Adiciona um server de testes
+    projeto.add_servidor('Esp32', 'TCP', {'ID':1, 'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1})
 
 def add_aba(projeto):
     nome = ctk.CTkInputDialog(text='Nova Aba:', title='Insira o nome da aba').get_input()
@@ -88,7 +84,7 @@ def config_aba(projeto):
         return
 
     # Cria a janela
-    janela = cw.customTopLevel('Configurar Aba', geometry=(300, 300), buttonName='Aplicar', closeWindow=False, command=lambda: aplicar())
+    janela = cw.customTopLevel('Configurar Aba', geometry=(300, 300), buttonName='Aplicar', command=lambda: aplicar())
     
     # Encontra a aba atual
     aba = projeto.notebook.select()
@@ -155,19 +151,14 @@ def tela_cheia(root):
     else:
         root.unbind('<Escape>')
 
+# Arrumar
 def preferencias():
-    janela = cw.customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonName='Aplicar', command=lambda:aplicar())
+    janela = cw.customTopLevel('Preferências', geometry=(300, 200), resizable=(False, False), buttonSet='Salvar', command=lambda: salvar())
     frame_modo = ctk.CTkFrame(janela.frame_interno)
-    frame_modo.pack(pady=10, padx=15, fill="x")
+    frame_modo.pack(pady=2, padx=2, fill="x")
 
     ctk.CTkLabel(frame_modo, text='Modo de Aparência:').pack(padx=10, pady=5, side='left')
-    
     modos = ['Light', 'Dark', 'System']
     modo_sel = ctk.CTkComboBox(frame_modo, values=modos, state='readonly', width=120)
     modo_sel.pack(padx=10, pady=5, side='right')
     modo_sel.set(ctk.get_appearance_mode()) # Pega o modo atual e define no ComboBox
-
-    def aplicar():
-        # Pega os valores selecionados e aplica
-        novo_modo = modo_sel.get().lower()
-        ctk.set_appearance_mode(novo_modo)
