@@ -6,20 +6,40 @@ from tkinter import messagebox
 from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
 
 # Imports do projeto
+import drivers.plc_driver as plc
 import managers.widget_manager as wm
-import PyBusControl.interface.personalized as cw
-import dicts as dt
+import interface.personalized as ps
 
+# Classes axiliares pra trabalhar com o projeto
+class Atibuitos:
+    def __init__(self):
+        self.classe = None
+        self.item = None
+        self.canvas = None
+        self.imagem = None
+
+class Widget:
+    def __init__(self, classe:str, posicao:tuple, propriedades:dict):
+        self.atributos = Atibuitos()
+        self.classe = classe
+        self.posicao = posicao
+        self.propriedades = propriedades
+        self.comando = None
+
+class Aba:
+    def __init__(self, tamanho:tuple):
+        self.atributos = Atibuitos()
+        self.tamanho = tamanho
+        self.caminho_imagem = None
+        self.widgets = {}
+
+# Classe principal do projeto
 class Projeto:
     def __init__(self, root):
-        self.notebook = cw.customNotebook(root)
+        self.notebook = ps.customNotebook(root)
         self.notebook.pack(side='bottom', fill='both', expand=True)
         self.abas = {}
         self.servidores = {}
-    
-    def exibir(self):
-        print(self.abas)
-        print(self.servidores)
 
     #################### Trabalhando com as abas do Notebook ####################
     ########## Adiciona uma aba no notebook ##########
@@ -28,8 +48,7 @@ class Projeto:
             messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
             return
         # Tamanho padrão
-        x = 1280
-        y = 780
+        x, y = 1280, 780
         # Adiciona uma aba
         frame = ctk.CTkFrame(self.notebook)
         canvas = tk.Canvas(frame, width=x, height=y, bg='white', borderwidth=2)
@@ -37,124 +56,57 @@ class Projeto:
         self.notebook.add(frame, text=nome)
         self.notebook.select(frame)
         # Guarda no projeto
-        self.abas[nome] = {'canvas': canvas, 'tamanho': (x, y), 'imagem': '', 'widgets': {}}
+        aba = Aba(tamanho=(x, y))
+        aba.atributos.canvas = canvas
+        aba.atributos.item = frame
+        self.abas[nome] = aba
 
     ########## Configura uma aba no notebook ##########
     def config_aba(self, chave, valor):
-        aba = self.notebook.select()
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        aba = self.abas[nome_aba]
+        
         if chave == 'nome':
-            # Verifica se já existe uma aba com esse nome  e se o nome é diferente do atual
-            aba = self.notebook.select()
-            nome_antigo = self.notebook.tab(aba, 'text')
-            if valor != nome_antigo and valor in self.abas.keys():
+            # Verifica se já existe uma aba com esse nome e se o nome é diferente do atual
+            if valor != nome_aba and valor in self.abas.keys():
                 messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
                 return
             else:
-                self.notebook.tab(aba, text=valor)
-                self.abas[valor] = self.abas.pop(nome_antigo)
+                self.notebook.tab(frame, text=valor)
+                self.abas[valor] = self.abas.pop(nome_aba)
+
         elif chave == 'tamanho':
-            nome = self.notebook.tab(aba, 'text')
             x, y = valor
-            self.abas[nome]['canvas'].config(width=x, height=y)
+            aba.atributos.canvas.config(width=x, height=y)
+
         elif chave == 'imagem':
             if not valor:
                 return
-            nome = self.notebook.tab(aba, 'text')
-            self.abas[nome]['imagem'] = valor
-            imagem = cw.imagem(valor)
-            self.abas[nome]['canvas'].image_ref = imagem
-            self.abas[nome]['canvas'].create_image(self.abas[nome]['canvas'].winfo_width()/2,
-                                                  self.abas[nome]['canvas'].winfo_height()/2,
-                                                  image=self.abas[nome]['canvas'].image_ref,
-                                                  anchor='center')
+            aba.caminho_imagem = valor
+            aba.atributos.imagem = ps.imagem(valor)
+            canvas = aba.atributos.canvas
+            canvas.image_ref = aba.atributos.imagem
+            canvas.create_image(
+                canvas.winfo_width()/2,
+                canvas.winfo_height()/2,
+                image=canvas.image_ref,
+                anchor='center'
+            )
 
     ########## Deleta uma aba no notebook ##########
     def del_aba(self):
-        aba = self.notebook.select()
-        nome_aba = self.notebook.tab(aba, 'text')
-        self.notebook.forget(aba)
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        self.notebook.forget(frame)
         del self.abas[nome_aba]
 
     #################### Trabalhando com os Servidores ####################
     ########## Adicionar um servidor ##########
     def add_servidor(self, nome_servidor, conexao, configs):
         if nome_servidor not in self.servidores.keys():
-            self.servidores[nome_servidor] = {'conexao':conexao, 'client':None, 'status':False, 'configs':configs}
-
-    ########## Conecta a um servidor ##########
-    async def conectar_servidor(self, nome_servidor):
-        if nome_servidor in self.servidores.keys():
-            servidor = self.servidores[nome_servidor]
-            configs = servidor['configs']
-            client = None
-            if servidor['conexao'] == 'TCP':
-                client = AsyncModbusTcpClient(
-                    host=configs['IP'],
-                    port=configs['Porta'],
-                    timeout=int(configs['Timeout (s)'])
-                )
-            elif servidor['conexao'] == 'RTU':
-                client = AsyncModbusSerialClient(
-                    port=configs['Porta Serial'],
-                    baudrate=int(configs['Baudrate']),
-                    bytesize=int(configs['Bytesize']),
-                    parity=configs['Paridade'],
-                    stopbits=int(configs['Stopbits']),
-                    timeout=int(configs['Timeout (s)'])
-            )
-            servidor['client'] = client
-            conexao = await servidor['client'].connect()
-            if conexao: servidor['status'] = conexao
-
-    ########## Desconecta um servidor ##########
-    async def desconectar_servidor(self, nome_servidor):
-        servidor = self.servidores[nome_servidor]
-        client = servidor['client']
-        conexao = await client.close()
-        if conexao: servidor['status'] = conexao
-
-    ########## Envia um comando ao servidor ##########
-    async def command_servidor(self, nome_servidor, commando, address, device_id=None, value=None):
-        servidor = self.servidores[nome_servidor]
-        client = servidor['client']
-        # Trata os dados
-        address = int(address)
-        value = bool(value.lower())
-        # Configurar depois pro servidor RTU
-        async def read_coil():
-            if client and client.connected:
-                valor = await client.read_coils(address=address, count=1, device_id=device_id)
-                return valor.bits[0] if not valor.isError() else None
-            return None
-
-        async def write_coil():
-            if client and client.connected:
-                await client.write_coil(address=address, device_id=device_id, value=value)
-                return True
-            return False
-
-        async def read_register():
-            if client and client.connected:
-                valor = await client.read_holding_registers(address=address, count=1, device_id=device_id)
-                return valor.registers[0] if not valor.isError() else None
-            return None
-
-        async def write_register():
-            if client and client.connected:
-                await client.write_register(address=address, device_id=device_id, value=value)
-                return True
-            return 
-        
-        funcoes_modbus = {
-            'Read_Single_Coil': read_coil,
-            'Write_Single_Coil': write_coil,
-            'Read_Single_Register': read_register,
-            'Write_Single_Register': write_register
-        }
-        
-        # Verifica se o comando existe e executa a função correspondente
-        if commando in funcoes_modbus:
-            return await funcoes_modbus[commando]()
+            servidor = plc.Plc(conexao, configs)
+            self.servidores[nome_servidor] = servidor
 
     ########## Mudar o nome do servidor ##########
     def novoNome_servidor(self, nome_servidor, novo_nome_servidor):
@@ -177,95 +129,107 @@ class Projeto:
     ####################  Trabalhando com os Widgets das abas ####################
     ########## Adicionar um widget ##########
     def add_widget(self, classe, propriedades, x, y):
-        # Encontra aba atual
-        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
-        canvas_atual = self.abas[nome_aba]['canvas']
+        # Encontra os atributos necessários
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        aba = self.abas[nome_aba]
+        canvas = aba.atributos.canvas
         # Menu de contexto do Widget
         def menuContexto_widget(event):
-            context_menu = cw.customMenu(canvas_atual)
+            context_menu = ps.customMenu(canvas)
             context_menu.add_command(label='Mover', command=lambda:self.move_widget(wid))
-            context_menu.add_command(label='Comando', command=lambda:wm.configurar_comando(self, wid))
-            context_menu.add_command(label='Visual', command=lambda:wm.configurar_visual(self, wid))
+            context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades(self, wid))
             context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
         # Adiciona o widget na visualização
-        classeCTk = getattr(ctk, classe)
-        widget = classeCTk(canvas_atual, **propriedades)
-        wid = canvas_atual.create_window(x, y, window=widget)
-        # Cria o bind do menu de contexto
-        widget.bind('<Button-3>', lambda event: menuContexto_widget(event))
+        widgetTk = classe(canvas, **propriedades).get()
+        widgetTk.bind('<Button-3>', lambda event: menuContexto_widget(event)) # Cria o bind do menu de contexto
+        wid = canvas.create_window(x, y, window=widgetTk)
         # Salva no projeto
-        self.abas[nome_aba]['widgets'][wid] = {'item':widget, 'classe':classe, 'x':x, 'y':y, 'comando':None, 'propriedades':propriedades}
-        
+        classetk = widgetTk.__class__.__name__
+        widget = Widget(classe=classetk, posicao=(x, y), propriedades=propriedades)
+        widget.atributos.item = widgetTk
+        widget.atributos.classe = classe
+        aba.widgets[wid] = widget
+        # Retorna o id do widget
         return wid
 
     ########## Configurar o widget ##########
     def config_widget(self, wid, prop, novo_valor):
-        # Encontra aba atual
-        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
-        # Altera o widget no projeto
-        props = self.abas[nome_aba]['widgets'][wid]['propriedades']
-        props[prop] = novo_valor
+        # Encontra os atributos necessários
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        aba = self.abas[nome_aba]
+        widget = aba.widgets[wid]
+        item = widget.atributos.item
         # Altera o widget na visualização
-        widget = self.abas[nome_aba]['widgets'][wid]['item']
-        if prop == 'image': # Trata o valor se for imagem
-            novo_valor = cw.imagem(novo_valor)
-            widget.configure(image=novo_valor)
+        if prop == 'image' and novo_valor is not None: # Trata o valor se for imagem
+            imagem = ps.imagem(novo_valor)
+            item.configure(image=imagem)
+            widget.atributos.image = imagem # Salva a imagem
         elif prop == 'font': # Trata o valor se for fonte
-            novo_valor = ctk.CTkFont(family=novo_valor[0], size=int(novo_valor[1]))
-            widget.configure(font=novo_valor)
+            fonte = ctk.CTkFont(family=novo_valor[0], size=int(novo_valor[1]))
+            item.configure(font=fonte)
         else:
-            widget.configure(**{prop:novo_valor})
+            item.configure(**{prop:novo_valor})
+        # Altera o widget no projeto
+        widget.propriedades[prop] = novo_valor
 
     ########## Move o widget ##########
     def move_widget(self, wid):
+        # Encontra os atributos necessários
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        aba = self.abas[nome_aba]
+        canvas = aba.atributos.canvas
         # posição inicial do item no canvas
-        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
-        canvas_atual = self.abas[nome_aba]['canvas']
-        x0, y0 = canvas_atual.coords(wid)
+        x0, y0 = canvas.coords(wid)
         # Dica
-        dica = cw.ClickTooltip(canvas_atual, text='Clique e arraste para mover o widget')
+        dica = ps.ClickTooltip(canvas, text='Clique e arraste para mover o widget')
         dica.show_tooltip()
 
         # calcula offset entre clique e posição do widget
         def iniciar(event):
-            canvas_atual._drag_data = {
+            dica.hide_tooltip()
+            canvas._drag_data = {
                 "item": wid,
                 "dx": x0 - event.x,
                 "dy": y0 - event.y
             }
             # Impede de ser arrastado novamente
-            canvas_atual.unbind('<Button-1>')
+            canvas.unbind('<Button-1>')
             # ativa arrastar
-            canvas_atual.bind('<Motion>', mover)
-            canvas_atual.bind('<ButtonRelease-1>', parar)
+            canvas.bind('<Motion>', mover)
+            canvas.bind('<ButtonRelease-1>', parar)
 
         def mover(event):
             # muda a posição do widget
-            dx = canvas_atual._drag_data["dx"]
-            dy = canvas_atual._drag_data["dy"]
+            dx = canvas._drag_data["dx"]
+            dy = canvas._drag_data["dy"]
             pos_x = event.x + dx
             pos_y = event.y + dy
-            canvas_atual.coords(wid, pos_x, pos_y)
+            canvas.coords(wid, pos_x, pos_y)
             # Salva a posição no widget
             self.x = pos_x
             self.y = pos_y
 
         def parar(event):
             # Impede de ser arrastado novamente
-            canvas_atual.unbind('<Motion>')
-            canvas_atual.unbind('<ButtonRelease-1>')
-            canvas_atual._drag_data = {}
-            dica.hide_tooltip()
+            canvas.unbind('<Motion>')
+            canvas.unbind('<ButtonRelease-1>')
+            canvas._drag_data = {}
 
         # espera o clique esquerdo pra começar arrastar
-        canvas_atual.bind('<Button-1>', iniciar)
+        canvas.bind('<Button-1>', iniciar)
         
     ########## Deletar um widget ##########
     def del_widget(self, wid):
-        nome_aba = self.notebook.tab(self.notebook.select(), 'text')
-        canvas_atual = self.abas[nome_aba]['canvas']
-        widget = self.abas[nome_aba]['widgets'][wid]['item']
+        # Encontra os atributos necessários
+        frame = self.notebook.select()
+        nome_aba = self.notebook.tab(frame, 'text')
+        aba = self.abas[nome_aba]
+        widget = aba.widgets[wid].atributos.item
+        canvas = aba.atributos.canvas
         widget.destroy()
-        canvas_atual.delete(wid)
+        canvas.delete(wid)
         

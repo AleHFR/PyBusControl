@@ -7,7 +7,7 @@ import serial.tools.list_ports
 import asyncio
 
 # Imports do projeto
-import PyBusControl.interface.personalized as cw
+import interface.personalized as cw
 import dicts as dt
 from async_loop import loop
 
@@ -59,9 +59,11 @@ def configurar_servidores(projeto):
 
     # Função para atualizar os parâmetros de acordo com o servidor selecionado
     def atualizar_campos(server):
+        # Pega o servidor selecionado e suas configurações
         nonlocal server_sel
-        server_sel = server
-        configs = servidores[server]['configs']
+        server_sel = servidores[server]
+        configs = {i: k for i, k in vars(server_sel).items() if i not in ['conexao', 'client', 'status','id']}
+
         # Verifica se tem algum servidor selecionado
         for bt in lista.winfo_children():
             if bt.cget('text') == server:
@@ -76,6 +78,7 @@ def configurar_servidores(projeto):
 
         # Cria todos os campos de parâmetros dinamicamente
         for param, value in configs.items():
+            if param in ['conexao', 'client', 'status']:continue
             # Cria um frame temporário simplesmente pra organizar os campos
             frame_temp = ctk.CTkFrame(frame_parametros, fg_color='transparent')
             frame_temp.pack(fill='x', pady=2, padx=2)
@@ -148,7 +151,7 @@ def configurar_servidores(projeto):
             # Salva as configurações
             chave = label_widget.cget('text').replace(':', '')
             valor = entry_widget.get()
-            projeto.config_servidor(server_sel, chave, valor)
+            setattr(server_sel, chave, valor)
 
     # Função para remover um servidor
     def remover_servidor():
@@ -169,13 +172,5 @@ def configurar_servidores(projeto):
 
 # Função para conectar os servidores
 def conectar_servidores(projeto):
-    operacao = asyncio.run_coroutine_threadsafe(conectar(projeto),loop)
-    operacao.add_done_callback(resultado(projeto))
-async def conectar(projeto):
-    # Cria uma lista de coroutines (tarefas)
-    tarefas = [projeto.conectar_servidor(server) for server in projeto.servidores.keys()]
-    # Executa todas as tarefas de forma assíncrona
-    await asyncio.gather(*tarefas)
-def resultado(projeto):
-    for servidor in projeto.servidores.keys():
-        print(projeto.servidores[servidor]['status'])
+    for servidor in projeto.servidores.values():
+        asyncio.run_coroutine_threadsafe(servidor.conectar(),loop)

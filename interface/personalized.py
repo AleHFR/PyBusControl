@@ -17,31 +17,30 @@ class customMenu(tk.Menu):
 class customLabelFrame(ttk.LabelFrame):
     def __init__(self, root, **kwargs):
         # Adapta ao tema do customtkinter
-        bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
-        fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
+        # bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
+        # fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
 
-        # Cria estilo personalizado
-        style = ttk.Style()
-        style.configure("Custom.TLabelframe", background=bg, foreground=fg)
-        style.configure("Custom.TLabelframe.Label", background=bg, foreground=fg)
+        # # Cria estilo personalizado
+        # style = ttk.Style()
+        # style.configure("Custom.TLabelframe", background=bg, foreground=fg)
+        # style.configure("Custom.TLabelframe.Label", background=bg, foreground=fg)
 
         # Inicializa o LabelFrame com o estilo
-        super().__init__(root, style="Custom.TLabelframe", **kwargs)
-
+        super().__init__(root, **kwargs)
 
 class customNotebook(ttk.Notebook):
     def __init__(self, root, **kwargs):
-        # Adapta ao tema do customtkinter
-        bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
-        fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
+        # # Adapta ao tema do customtkinter
+        # bg = ctk.ThemeManager.theme["CTkFrame"]["fg_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkFrame"]["fg_color"][1]
+        # fg = ctk.ThemeManager.theme["CTkLabel"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme["CTkLabel"]["text_color"][1]
 
-        # Cria estilo personalizado
-        style = ttk.Style()
-        style.configure("Custom.TNotebook", background=bg, foreground=fg)
-        style.configure("Custom.TNotebook.Tab", background=bg, foreground=fg)
+        # # Cria estilo personalizado
+        # style = ttk.Style()
+        # style.configure("Custom.TNotebook", background=bg, foreground=fg)
+        # style.configure("Custom.TNotebook.Tab", background=bg, foreground=fg)
 
         # Inicializa o Notebook com o estilo
-        super().__init__(root, style="Custom.TNotebook", **kwargs)
+        super().__init__(root, **kwargs)
 
 class customSpinbox(ctk.CTkFrame):
     def __init__(self, master, min_value=0, max_value=100, step=1, initial_value=0, width=100, **kwargs):
@@ -142,6 +141,9 @@ class customTopLevel(ctk.CTkToplevel):
         self.transient(tk._default_root)
         self.grab_set()
 
+        # Variáveis 
+        self.itens = {}
+
         # Tamanho e redimensionamento
         self.geometry(f'{geometry[0]}x{geometry[1]}' if geometry else '300x150')
         if resizable:
@@ -156,9 +158,75 @@ class customTopLevel(ctk.CTkToplevel):
                 if command:
                     command()
             ctk.CTkButton(frame_botao, text=buttonName if buttonName else 'Aplicar', command=aplicar).pack()
+
         # Frame interno
-        self.frame_interno = ctk.CTkScrollableFrame(self) if scrollbar else ctk.CTkFrame(self)
+        self.frame_interno = ctk.CTkScrollableFrame(self, fg_color="transparent") if scrollbar else ctk.CTkFrame(self, fg_color="transparent")
         self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
+    
+    def addTopLabel(self, text:str, root=None, **kargs):
+        # Verifica se tem um frame externo, se não usa o interno
+        root = root if root else self.frame_interno
+        # Simplesmente uma label no topo
+        ctk.CTkLabel(root, text=text, **kargs).pack(padx=5, pady=5, fill='x', side='top')
+
+    def addItem(self, nome:str, item, tamanho:int=None, valor_inicial=None, root=None, **kargs):
+        # Verifica se tem um frame externo, se não usa o interno
+        root = root if root else self.frame_interno
+        # Cria um frame temporário
+        frame_temp = ctk.CTkFrame(root, fg_color="transparent")
+        frame_temp.pack(fill='x', pady=2, padx=2)
+        # Inclui o nomde do item
+        ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
+        # Cria o item de acordo com o tipo
+        tamanho = tamanho if tamanho else 200
+        item = item(frame_temp, width=tamanho, **kargs)
+        item.pack(side='right')
+        # Trata a atribuição de acordo com o tipo
+        if isinstance(item, (ctk.CTkEntry, ctk.CTkTextbox)):
+            item.delete(0, ctk.END)
+            if valor_inicial is not None:
+                item.insert(0, valor_inicial)
+        elif isinstance(item, (ctk.CTkComboBox, ctk.CTkOptionMenu, ctk.CTkCheckBox, ctk.CTkSwitch)):
+            if valor_inicial is not None:
+                item.set(valor_inicial)
+
+        # Salva no dicionário
+        self.itens[nome] = item
+        # retorna o item
+        return item
+    
+    def addButtonItem(self, nome:str, comando, tamanho:int=None, valor_inicial=None, root=None, **kargs):
+        # Verifica se tem um frame externo, se não usa o interno
+        root = root if root else self.frame_interno
+        # Cria um frame temporário
+        frame_temp = ctk.CTkFrame(root, fg_color="transparent")
+        frame_temp.pack(fill='x', pady=2, padx=2)
+        # Inclui o nomde do item
+        ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
+        # Cria o botão
+        ctk.CTkButton(frame_temp, text='...', width=30, command=lambda:comando()).pack(side='right', padx=(5,0))
+        # Cria uma entry com botão do lado
+        tamanho = tamanho if tamanho else 200
+        item = ctk.CTkEntry(frame_temp, width=tamanho-35, **kargs)
+        item.pack(side='right')
+        # Insere o valor
+        item.insert(0, valor_inicial)
+        # Salva no dicionário
+        self.itens[nome] = item
+        # retorna o item
+        return item
+
+class customNotebookTopLevel(customTopLevel):
+    def __init__(self, title, geometry=None, resizable=None, buttonSet=True, command=None, buttonName=None, **kwargs):
+        super().__init__(title, geometry=geometry, resizable=resizable, scrollbar=True, buttonSet=buttonSet, command=command, buttonName=buttonName, **kwargs)
+        self.notebook = ttk.Notebook(self.frame_interno)
+        self.notebook.pack(fill='both', expand=True)
+
+    def addTab(self, title, **kwargs):
+        frame = ctk.CTkFrame(self.notebook, fg_color="transparent")
+        self.notebook.add(frame, text=title, **kwargs)
+        self.notebook.select(frame)
+        return frame
 
 class ClickTooltip(ctk.CTkToplevel):
     def __init__(self, master, text="Tooltip", **kwargs):
@@ -215,60 +283,3 @@ def imagem(nome, tamanho_icone=None):
     if tamanho_icone:image = ctk.CTkImage(light_image=image, dark_image=image, size=tamanho_icone)
     else: image = ctk.CTkImage(light_image=image, dark_image=image)
     return image
-
-def listaDinamica(root, values, start_value=None, height_entry=None, width_entry=None, height_listbox=None, width_listbox=None):
-    values_orig = values[:]  # cópia para evitar alterar lista original
-
-    entry = ttk.Entry(root, width=width_entry if width_entry else 20)
-    if height_entry:
-        entry.config(height=height_entry)
-    if width_entry:
-        entry.config(width=width_entry)
-    if start_value:
-        entry.insert(0, start_value)
-
-    scrollbar = ttk.Scrollbar(root, orient="vertical")
-    listbox = tk.Listbox(root, yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-
-    def mostrar_lista():
-        if listbox.size() > 0:
-            x, y, w, h = entry.winfo_x(), entry.winfo_y(), entry.winfo_width(), entry.winfo_height()
-
-            # Ajusta dimensões conforme parâmetros
-            w_listbox = width_listbox if width_listbox else w - scrollbar.winfo_reqwidth()
-            h_listbox = height_listbox if height_listbox else 100
-            w_scroll = scrollbar.winfo_reqwidth()
-
-            listbox.place(x=x, y=y+h, width=w_listbox, height=h_listbox)
-            scrollbar.place(x=x + w_listbox, y=y+h, width=w_scroll, height=h_listbox)
-
-            listbox.lift(), scrollbar.lift()
-        else:
-            esconder_lista()
-
-    def esconder_lista(*_):
-        listbox.place_forget()
-        scrollbar.place_forget()
-
-    def atualizar_lista(*_):
-        typed = entry.get().lower()
-        filtradas = [v for v in values_orig if typed in v.lower()] if typed else values_orig
-        listbox.delete(0, tk.END)
-        [listbox.insert(tk.END, o) for o in filtradas]
-        mostrar_lista()
-
-    def selecionar_item(*_):
-        if listbox.curselection():
-            entry.delete(0, tk.END)
-            entry.insert(0, listbox.get(listbox.curselection()[0]))
-        esconder_lista()
-
-    entry.bind("<KeyRelease>", atualizar_lista)
-    entry.bind("<Button-1>", atualizar_lista)
-    listbox.bind("<ButtonRelease-1>", selecionar_item)
-
-    # Fecha ao clicar fora
-    root.bind("<Button-1>", lambda e: esconder_lista() if e.widget != entry else None)
-
-    return entry

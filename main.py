@@ -4,8 +4,8 @@ import customtkinter as ctk
 import platform
 
 # Imports do projeto
-import interface.gui_principal as gm
-import PyBusControl.interface.personalized as cw
+import interface.interface_principal as ip
+import interface.personalized as cw
 
 ########## Loop pra rodar os servidores em background ##########
 import async_loop
@@ -30,9 +30,9 @@ root.config(menu=menu_bar)
 # Criar um menu de arquivo
 menu_arquivo = cw.customMenu(menu_bar)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
-menu_arquivo.add_command(label="Novo Projeto", command=lambda:gm.novo_projeto(root))
+menu_arquivo.add_command(label="Novo Projeto", command=lambda:ip.novo_projeto(root))
 menu_arquivo.add_separator()
-menu_arquivo.add_command(label="Preferências", command=lambda:gm.preferencias())
+menu_arquivo.add_command(label="Preferências", command=lambda:ip.preferencias())
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
 ##########  ##########
@@ -51,7 +51,7 @@ frame_central.rowconfigure(0, weight=1)
 frame_btn = ctk.CTkFrame(frame_central, fg_color='transparent', corner_radius=0)
 frame_btn.grid(row=0, column=0, padx=20, pady=20, sticky='ns')
 
-ctk.CTkButton(frame_btn, text='Novo Projeto', command=lambda:gm.novo_projeto(root)).pack(pady=5, fill='x')
+ctk.CTkButton(frame_btn, text='Novo Projeto', command=lambda:ip.novo_projeto(root)).pack(pady=5, fill='x')
 
 # Coluna da direita (arquivos recentes)
 frame_arquivos = ctk.CTkFrame(frame_central, fg_color='transparent', corner_radius=0)
@@ -59,7 +59,6 @@ ctk.CTkLabel(frame_arquivos, text='Arquivos Recentes').pack(pady=5, fill='x', an
 frame_arquivos.grid(row=0, column=1, padx=20, pady=20)
 
 lista = ctk.CTkTextbox(frame_arquivos, width=200, height=200, exportselection=False)
-# lista.configure(state='disabled')
 lista.pack(fill='both', expand=True, padx=5, pady=5)
 
 # Espaçamento embaixo

@@ -1,7 +1,10 @@
+import drivers.widgets_driver as wd
+
 widgets_padrao = {
     'Texto': {
-        'classe': 'CTkLabel',
-        'propriedades': {
+        'classe': wd.Texto,
+        'comando':[],
+        'visual': {
             'text': 'Texto',
             'font': ('Roboto', 13),
             'text_color': "#000000",
@@ -11,15 +14,19 @@ widgets_padrao = {
             'height': 0,
             'image': None,
             'compound': 'left',
-            'anchor': 'center'
         }
     },
-    'Botão': {
-        'classe': 'CTkButton',
-        'propriedades': {
-            'text': 'Botão',
+    'Botao': {
+        'classe': wd.Botao,
+        'comando':[
+            'Write_Single_Coil',
+            'Write_Multiple_Coils',
+            'Write_Single_Register',
+            'Write_Multiple_Registers',
+        ],
+        'visual': {
+            'text': 'Botao',
             'font': ('Roboto', 13),
-            'state': 'normal',
             'width': 140,
             'height': 28,
             'corner_radius': 6,
@@ -32,71 +39,77 @@ widgets_padrao = {
             'text_color_disabled': '#909090',
             'image': None,
             'compound': 'left',
-            'anchor': 'center'
         }
     },
     'Indicador': {
-        'classe': 'CTkLabel',
-        'propriedades': {
-            'text': '0.00',
+        'classe': wd.Indicador,
+        'comando':[
+            'Read_Single_Coil',
+            'Read_Single_Register',
+        ],
+        'visual': {
             'font': ('Arial', 14),
             'text_color': "#000000",
             'fg_color': 'transparent',
             'corner_radius': 0,
             'width': 0,
             'height': 0,
-            'anchor': 'center'
         }
     },
-    'Slider': {
-        'classe': 'CTkSlider',
-        'propriedades': {
-            'from_': 0,
-            'to': 100,
-            'number_of_steps': None,
-            'orientation': 'horizontal',
-            'width': 200,
-            'height': 16,
-            'fg_color': '#565B5E',
-            'progress_color': '#3B8BBE',
-            'button_color': '#DCE4EE',
-            'button_hover_color': '#BFC9C9'
+}
+
+# Dicionário com as opções para os Combobox
+selecionaveis_modbus = {
+    'Conexão': ['TCP', 'RTU'],
+    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
+    'Paridade': ['N', 'P', 'I'],
+    'Bytesize': ['8', '7'],
+    'Stopbits': ['1', '2']
+}
+
+# Estruturas padrão para cada tipo de servidor
+estrutura_servidor = {
+    'TCP': {'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1},
+    'RTU': {'ID':1, 'Porta Serial': 'COM3', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
+}
+
+funcoes_modbus = {
+    'Write_Single_Coil': {
+        'parametros': {
+            'address': 0,
+            'value': ['False','True']
         }
     },
-    'Caixa de Seleção': {
-        'classe': 'CTkCheckBox',
-        'propriedades': {
-            'text': 'Opção',
-            'onvalue': 1,
-            'offvalue': 0,
-            'font': ('Roboto', 13),
-            'width': 0,
-            'height': 0,
-            'corner_radius': 6,
-            'border_width': 3,
-            'fg_color': '#2A2D2E',
-            'hover_color': '#3B3B3B',
-            'border_color': '#3B8BBE',
-            'text_color': "#000000"
+    'Write_Multiple_Coils': {
+        'parametros': {
+            'address': 0,
+            'count': 1,
+            'value': ['False','True']
         }
     },
-    'Interruptor': {
-        'classe': 'CTkSwitch',
-        'propriedades': {
-            'text': 'Opção',
-            'onvalue': 1,
-            'offvalue': 0,
-            'font': ('Roboto', 13),
-            'width': 50,
-            'height': 24,
-            'corner_radius': 1000,
-            'border_width': 3,
-            'border_color': '#3B8BBE',
-            'fg_color': "#FFFFFF",
-            'progress_color': '#3B8BBE',
-            'button_color': '#DCE4EE',
-            'button_hover_color': '#BFC9C9',
-            'text_color': "#000000"
+    'Read_Single_Coil': {
+        'parametros': {
+            'address': 0,
+            'sample delay': 1
+        }
+    },
+    'Write_Single_Register': {
+        'parametros': {
+            'address': 0,
+            'value': 0
+        }
+    },
+    'Write_Multiple_Registers': {
+        'parametros': {
+            'address': 0,
+            'count': 1,
+            'value': 0
+        }
+    },
+    'Read_Single_Register': {
+        'parametros': {
+            'address': 0,
+            'sample delay': 1
         }
     },
 }
@@ -164,44 +177,4 @@ parametros_especiais = {
         'padx',
         'pady'
     ]
-}
-
-# Dicionário com as opções para os Combobox
-selecionaveis_modbus = {
-    'Conexão': ['TCP', 'RTU'],
-    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
-    'Paridade': ['N', 'P', 'I'],
-    'Bytesize': ['8', '7'],
-    'Stopbits': ['1', '2']
-}
-
-# Estruturas padrão para cada tipo de servidor
-estrutura_servidor = {
-    'TCP': {'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1},
-    'RTU': {'ID':1, 'Porta Serial': 'COM3', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
-}
-
-funcoes_modbus = {
-    'Write_Single_Coil': {
-        'parametros': {
-            'address': 0,
-            'value': ['False','True']
-        }
-    },
-    'Read_Single_Coil': {
-        'parametros': {
-            'address': 0,
-        }
-    },
-    'Write_Single_Register': {
-        'parametros': {
-            'address': 0,
-            'value': 0
-        }
-    },
-    'Read_Single_Register': {
-        'parametros': {
-            'address': 0,
-        }
-    },
 }
