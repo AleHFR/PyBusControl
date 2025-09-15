@@ -40,14 +40,15 @@ def adicionar_widget(projeto):
         # Cria o widget e remove o marcador
         def ok(tipo):
             classe = dt.widgets_padrao[tipo]['classe']
-            propriedades = dt.widgets_padrao[tipo]['visual']
+            propriedades = dt.widgets_padrao[tipo]['visual'].copy()
             projeto.add_widget(classe, propriedades, x, y)
 
-        # Seleciona o widget
-        context_menu = cw.customMenu(canvas)
+        # Encontra as classes de widgets
         classes_encontradas = inspect.getmembers(wd, inspect.isclass)
         classes_encontradas = [classe[0] for classe in classes_encontradas]
         classes_encontradas.pop(classes_encontradas.index('Widget'))
+        # Cria um minimeu pra selecionar o widget
+        context_menu = cw.customMenu(canvas)
         for tipo in classes_encontradas:
             context_menu.add_command(label=tipo, command=lambda t=tipo:ok(t))
         context_menu.post(event.x_root, event.y_root)
@@ -97,7 +98,6 @@ def propriedades(projeto, wid):
             valor = entry_widget.get()
             # Insere no dicionário
             comando_dict['parametros'][chave] = valor
-        print(comando_dict)
         widget.comando = comando_dict
         item.configure(command=lambda:executar_comando(projeto, widget.comando))
         
@@ -114,8 +114,6 @@ def propriedades(projeto, wid):
                 valor = frame.winfo_children()[1].get()
             elif param == 'font':
                 valor = (frame.winfo_children()[2].get(), frame.winfo_children()[1].get())
-            elif param == 'image':
-                valor = frame.winfo_children()[1].get()
             else:
                 valor = frame.winfo_children()[1].get()
             # Atualiza o widget
@@ -190,4 +188,12 @@ def propriedades(projeto, wid):
     janela.notebook.select(aba_comando)
 
 def executar_comando(projeto, comando_dict):
-    operacao = asyncio.run_coroutine_threadsafe(comando(projeto, comando_dict),loop)
+    servidor = projeto.servidores[comando_dict['servidor']]
+    comando = comando_dict['funcao']
+    parametros = comando_dict['parametros']
+    address = parametros.get('address')
+    value = parametros.get('value')
+    count = parametros.get('count') if parametros.get('count') else None
+    sample_delay = parametros.get('sample_delay') if parametros.get('sample_delay') else None
+    # operacao = asyncio.run_coroutine_threadsafe(servidor.comand(comando, address, value, count, sample_delay),loop)
+    operacao = asyncio.run(servidor.comand(comando, address, value, count, sample_delay))

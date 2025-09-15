@@ -1,7 +1,7 @@
 ########### Preâmbulo ###########
 # Imports do python
 import customtkinter as ctk
-from tktooltip import ToolTip
+from TkToolTip import ToolTip
 from tkinter import messagebox, filedialog
 
 # Imports do projeto

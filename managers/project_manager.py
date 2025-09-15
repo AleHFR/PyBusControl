@@ -41,6 +41,93 @@ class Projeto:
         self.abas = {}
         self.servidores = {}
 
+    def exibir(self):
+        def print_propriedades_em_colunas(propriedades, colunas=5):
+            # Converte o dicionário em uma lista de tuplas (chave, valor)
+            itens = list(propriedades.items())
+            num_itens = len(itens)
+            
+            # Calcula o número de linhas necessário
+            num_linhas = (num_itens + colunas - 1) // colunas
+            
+            # Cria uma lista de colunas, onde cada coluna é uma sublista de itens
+            colunas_de_itens = [itens[i * num_linhas : (i + 1) * num_linhas] for i in range(colunas)]
+            
+            # Armazena as larguras máximas de cada coluna para alinhamento
+            larguras_colunas = []
+            for coluna in colunas_de_itens:
+                max_chave = 0
+                max_valor = 0
+                for chave, valor in coluna:
+                    if len(str(chave)) > max_chave:
+                        max_chave = len(str(chave))
+                    if len(str(valor)) > max_valor:
+                        max_valor = len(str(valor))
+                larguras_colunas.append((max_chave, max_valor))
+
+            # Itera sobre as linhas e imprime as propriedades em colunas
+            for linha in range(num_linhas):
+                linha_impressao = ''
+                for i in range(colunas):
+                    if linha < len(colunas_de_itens[i]):
+                        chave, valor = colunas_de_itens[i][linha]
+                        
+                        # Formata a string de impressão com alinhamento dinâmico
+                        prop_formatada = f"{str(chave).ljust(larguras_colunas[i][0])} : {str(valor).ljust(larguras_colunas[i][1])}"
+                        linha_impressao += f" {prop_formatada.ljust(larguras_colunas[i][0] + larguras_colunas[i][1] + 3)}"
+                    else:
+                        # Se a coluna não tiver mais itens, preenche o espaço
+                        espaco_vazio = larguras_colunas[i][0] + larguras_colunas[i][1] + 3
+                        linha_impressao += ' ' * espaco_vazio
+                print(linha_impressao)
+            
+        print('--- Visão Geral do Projeto ---\n')
+
+        # Exibe as abas e seus widgets
+        print('### Abas ###')
+        if not self.abas:
+            print('Nenhuma aba criada.')
+        else:
+            for nome_aba, aba_obj in self.abas.items():
+                print(f'-> Nome da Aba: {nome_aba}')
+                print(f'   - Tamanho: {aba_obj.tamanho}')
+                print(f'   - Caminho da Imagem: {aba_obj.caminho_imagem}')
+                print(f'   - Widgets:')
+                if not aba_obj.widgets:
+                    print('     Nenhum widget nesta aba.')
+                else:
+                    for widget_id, widget_obj in aba_obj.widgets.items():
+                        print(f'     -> ID do Widget: {widget_id}')
+                        print(f'        - Classe: {widget_obj.classe}')
+                        print(f'        - Posição: {widget_obj.posicao}')
+                        if widget_obj.comando:
+                            print(f'        - Comando Associado: {widget_obj.comando}')
+                        print(f'        - Propriedades:')
+                        print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)
+
+        print('\n' + '-'*30 + '\n')
+
+        # Exibe os servidores e seus detalhes
+        print('### Servidores ###')
+        if not self.servidores:
+            print('Nenhum servidor configurado.')
+        else:
+            for nome_servidor, server_obj in self.servidores.items():
+                print(f'-> Nome do Servidor: {nome_servidor}')
+                print(f'   - Conexão: {server_obj.conexao}')
+                print(f'   - Status: {server_obj.status}')
+                # Exibe os parâmetros específicos para cada tipo de conexão
+                if server_obj.conexao == 'TCP':
+                    print(f'   - IP: {server_obj.ip}')
+                    print(f'   - Porta: {server_obj.porta}')
+                    print(f'   - Timeout: {server_obj.timeout}s')
+                elif server_obj.conexao == 'RTU':
+                    print(f'   - ID: {server_obj.id}')
+                    print(f'   - Porta Serial: {server_obj.porta_serial}')
+                    print(f'   - Baudrate: {server_obj.baudrate}')
+                    print(f'   - Paridade: {server_obj.parity}')
+                    print(f'   - Timeout: {server_obj.timeout}s')
+
     #################### Trabalhando com as abas do Notebook ####################
     ########## Adiciona uma aba no notebook ##########
     def add_aba(self, nome):
@@ -81,7 +168,7 @@ class Projeto:
             aba.atributos.canvas.config(width=x, height=y)
 
         elif chave == 'imagem':
-            if not valor:
+            if valor not in [None, '', ' ']:
                 return
             aba.caminho_imagem = valor
             aba.atributos.imagem = ps.imagem(valor)
@@ -117,9 +204,7 @@ class Projeto:
     ########## Configurar o servidor ##########
     def config_servidor(self, nome_servidor, config, valor):
         servidor = self.servidores[nome_servidor]
-        configs = servidor['configs']
-        if config in configs.keys():
-            configs[config] = valor
+        setattr(servidor, config, valor)
 
     ########## Deletar um servidor ##########
     def del_servidor(self, nome_servidor):
@@ -163,7 +248,7 @@ class Projeto:
         widget = aba.widgets[wid]
         item = widget.atributos.item
         # Altera o widget na visualização
-        if prop == 'image' and novo_valor is not None: # Trata o valor se for imagem
+        if prop == 'image' and novo_valor not in [None, '', ' ']: # Trata o valor se for imagem
             imagem = ps.imagem(novo_valor)
             item.configure(image=imagem)
             widget.atributos.image = imagem # Salva a imagem

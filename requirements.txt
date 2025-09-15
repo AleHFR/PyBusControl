@@ -1,0 +1,8 @@
+# Interface
+customtkinter
+ctkcolorpicker
+tktooltip
+Pillow
+# Modbus
+pymodbus
+pyserial

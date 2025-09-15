@@ -2,7 +2,7 @@
 # Imports do python
 import customtkinter as ctk
 from tkinter import messagebox
-from tktooltip import ToolTip
+from TkToolTip import ToolTip
 import serial.tools.list_ports
 import asyncio
 

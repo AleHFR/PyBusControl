@@ -3,7 +3,8 @@ import customtkinter as ctk
 # Classe mãe interna pra configurar as demais widgets
 class Widget():
     def __init__(self, master, classe, **kwargs):
-        self.item = getattr(ctk, classe)(master, **kwargs)
+        classeCTk = getattr(ctk, classe)
+        self.item = classeCTk(master, **kwargs)
 
     def get(self):
         return self.item

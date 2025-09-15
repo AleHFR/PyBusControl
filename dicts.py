@@ -12,7 +12,7 @@ widgets_padrao = {
             'corner_radius': 0,
             'width': 0,
             'height': 0,
-            'image': None,
+            'image': '',
             'compound': 'left',
         }
     },
@@ -37,7 +37,7 @@ widgets_padrao = {
             'border_color': '#909090',
             'text_color': "#000000",
             'text_color_disabled': '#909090',
-            'image': None,
+            'image': '',
             'compound': 'left',
         }
     },
@@ -77,14 +77,14 @@ funcoes_modbus = {
     'Write_Single_Coil': {
         'parametros': {
             'address': 0,
-            'value': ['False','True']
+            'value': ['0','1']
         }
     },
     'Write_Multiple_Coils': {
         'parametros': {
             'address': 0,
             'count': 1,
-            'value': ['False','True']
+            'value': ['0','1']
         }
     },
     'Read_Single_Coil': {

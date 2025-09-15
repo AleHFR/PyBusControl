@@ -1,4 +1,5 @@
 ########### Preâmbulo ###########
+
 # Imports do python
 import customtkinter as ctk
 import platform

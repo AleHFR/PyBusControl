@@ -37,56 +37,58 @@ class Plc:
             )
 
         self.status = await self.client.connect()
+        print(f"Servidor: {self.ip} - Status: {self.status}")
         return self.status
 
-    async def desconectar_servidor(self):
+    async def desconectar(self):
         if self.client:
             await self.client.close()
             self.status = False
             return True
         return False
 
-    async def command_servidor(self, commando, address, value=None):
+    async def comand(self, comando, address, value=None, count=None, sample_delay=None):
         if not self.client or not self.client.connected:
             print("Client não conectado.")
             return None
-
         # Define o device_id, opcional para TCP mas obrigatório para RTU
         device_id = self.id if self.conexao == 'RTU' else None
 
         address = int(address)
+        device_id = int(device_id) if device_id is not None else 1
 
-        async def read_coil():
-            valor = await self.client.read_coils(address=address, count=1, slave_id=device_id)
+        async def read_single_coil():
+            valor = await self.client.read_coils(address=address, count=1, device_id=device_id)
             return valor.bits[0] if not valor.isError() else None
 
-        async def write_coil():
-            value_bool = str(value).lower() in ['true', '1']
-            result = await self.client.write_coil(address=address, slave_id=device_id, value=value_bool)
+        async def write_single_coil():
+            result = await self.client.write_coil(address=address, device_id=device_id, value=int(value))
+  
             return not result.isError()
 
-        async def read_register():
-            valor = await self.client.read_holding_registers(address=address, count=1, slave_id=device_id)
+        async def read_single_register():
+            valor = await self.client.read_holding_registers(address=address, count=1, device_id=device_id)
             return valor.registers[0] if not valor.isError() else None
 
-        async def write_register():
+        async def write_single_register():
             try:
                 value_int = int(value)
             except (ValueError, TypeError):
                 print("Valor para o registrador deve ser um número inteiro.")
                 return False
-            result = await self.client.write_register(address=address, slave_id=device_id, value=value_int)
+            result = await self.client.write_register(address=address, device_id=device_id, value=value_int)
             return not result.isError()
 
         funcoes_modbus = {
-            'Read_Single_Coil': read_coil,
-            'Write_Single_Coil': write_coil,
-            'Read_Single_Register': read_register,
-            'Write_Single_Register': write_register
+            'Read_Single_Coil':read_single_coil,
+            'Write_Single_Coil':write_single_coil,
+            'Read_Single_Register':read_single_register,
+            'Write_Single_Register':write_single_register
         }
         
-        if commando in funcoes_modbus:
-            return await funcoes_modbus[commando]()
+        if comando in funcoes_modbus:
+            print(f"Executando comando: {comando} - Address: {address} - Value: {value} - Count: {count} - Sample Delay: {sample_delay}")
+            return await funcoes_modbus[comando]()
         else:
-            print(f"Comando '{commando}' não encontrado.")
+            print(f"Comando '{comando}' não encontrado.")
             return None
