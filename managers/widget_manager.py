@@ -8,7 +8,7 @@ import asyncio
 import inspect
 
 # Imports do projeto
-import interface.personalized as cw
+import interface.customizados as ct
 import drivers.widgets_driver as wd
 import dicts as dt
 from async_loop import loop
@@ -48,7 +48,7 @@ def adicionar_widget(projeto):
         classes_encontradas = [classe[0] for classe in classes_encontradas]
         classes_encontradas.pop(classes_encontradas.index('Widget'))
         # Cria um minimeu pra selecionar o widget
-        context_menu = cw.customMenu(canvas)
+        context_menu = ct.customMenu(canvas)
         for tipo in classes_encontradas:
             context_menu.add_command(label=tipo, command=lambda t=tipo:ok(t))
         context_menu.post(event.x_root, event.y_root)
@@ -60,7 +60,7 @@ def adicionar_widget(projeto):
     # Muda o cursor pra cruz
     canvas.config(cursor="tcross")
     # Chama o bind e escreve a dica
-    dica = cw.ClickTooltip(canvas, text='Clique para adicionar um widget')
+    dica = ct.ClickTooltip(canvas, text='Clique para adicionar um widget')
     dica.show_tooltip()
     canvas.bind("<Button-1>", lambda e:click(e))
 
@@ -74,7 +74,7 @@ def propriedades(projeto, wid):
     classe = widget.atributos.classe.__name__
 
     # Cria a janela
-    janela = cw.customNotebookTopLevel('Propriedades', geometry=(400, 400), buttonSet=True, resizable=(False, False), command=lambda:salvar())
+    janela = ct.customTopLevel('Propriedades', geometry=(400, 400), buttonSet=True, resizable=(False, False), Notebook=True, command=lambda:salvar())
 
     # Funções auxiliares
     def escolher_cor(bt_cor):
@@ -99,6 +99,8 @@ def propriedades(projeto, wid):
             # Insere no dicionário
             comando_dict['parametros'][chave] = valor
         widget.comando = comando_dict
+        servidor = projeto.servidores[server].client
+        widget.start_polling(servidor)
         item.configure(command=lambda:executar_comando(projeto, widget.comando))
         
         # Puxa as informaçoes referentes ao visual
@@ -159,7 +161,7 @@ def propriedades(projeto, wid):
             bt_cor.pack(side='right')
             bt_cor.configure(command=lambda bt=bt_cor:escolher_cor(bt))
         elif param in dt.parametros_especiais['numericos']: # Parametros numericos
-            spinbox = cw.customSpinbox(frame_temp, initial_value=value, max_value=255, width=200)
+            spinbox = ct.customSpinbox(frame_temp, initial_value=value, max_value=255, width=200)
             spinbox.pack(side='right')
         elif param in dt.parametros_especiais['pre-definidos'].keys():
             combo = ctk.CTkComboBox(frame_temp, values=dt.parametros_especiais['pre-definidos'][param], state='readonly', width=200)

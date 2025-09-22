@@ -1,6 +1,8 @@
 import asyncio
 import threading
 
+# Aquivo que cria um loop que roda contantemente em background
+
 # Cria o loop global
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)

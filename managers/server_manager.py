@@ -7,7 +7,7 @@ import serial.tools.list_ports
 import asyncio
 
 # Imports do projeto
-import interface.personalized as cw
+import interface.customizados as ct
 import dicts as dt
 from async_loop import loop
 
@@ -16,7 +16,7 @@ imagens = {}
 
 def configurar_servidores(projeto):
     # Cria a janela
-    janela = cw.customTopLevel('Conexão Modbus', geometry=(500, 400), buttonSet=False, scrollbar=False, resizable=(False, False))
+    janela = ct.customTopLevel('Conexão Modbus', geometry=(500, 400), buttonSet=False, scrollbar=False, resizable=(False, False))
 
     # Pega os servidores existentes
     servidores = projeto.servidores
@@ -33,16 +33,19 @@ def configurar_servidores(projeto):
     btns = {
         'Adicionar TCP': {'command': lambda: adicionar_servidor('TCP'), 'image': 'tcp.png'},
         'Adicionar RTU': {'command': lambda: adicionar_servidor('RTU'), 'image': 'rtu.png'},
-        'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
+        # 'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
         'Mudar Nome': {'command': lambda:mudar_nome(), 'image': 'edit.png'},
         'Salvar': {'command': lambda:salvar_servidor(), 'image': 'save.png'},
         'Remover': {'command': lambda:remover_servidor(), 'image': 'del.png'},
     }
     # Adiciona os botoes ao frame
     for key, value in btns.items():
-        imagens[key] = cw.imagem(value['image'], (15, 15))
+        imagens[key] = ct.imagem(value['image'], (15, 15))
         bt = ctk.CTkButton(frame_bt,text='', width=0, fg_color='#FFFFFF', hover_color='gray', command=value['command'], image=imagens[key])
-        bt.pack(side='left', padx=2, pady=2)
+        if key == 'Remover':
+            bt.pack(side='right', padx=2, pady=2)
+        else:
+            bt.pack(side='left', padx=2, pady=2)
         ToolTip(bt, msg=key)
         
     # Lista para os servidores
@@ -161,7 +164,7 @@ def configurar_servidores(projeto):
             return
         
         # Remove o servidor
-        if cw.customDialog('Remover Servidor', f'Deseja remover o servidor {server_sel}?'):
+        if ct.customDialog('Remover Servidor', f'Deseja remover o servidor {server_sel}?'):
             for bt in lista.winfo_children():
                 if bt.cget('text') == server_sel:
                     bt.destroy()

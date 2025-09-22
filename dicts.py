@@ -1,5 +1,7 @@
 import drivers.widgets_driver as wd
 
+#################### Dicionários relacionados aos widgets ####################
+# Dicionário com os widgets padrão e suas propriedades
 widgets_padrao = {
     'Texto': {
         'classe': wd.Texto,
@@ -57,63 +59,7 @@ widgets_padrao = {
         }
     },
 }
-
-# Dicionário com as opções para os Combobox
-selecionaveis_modbus = {
-    'Conexão': ['TCP', 'RTU'],
-    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
-    'Paridade': ['N', 'P', 'I'],
-    'Bytesize': ['8', '7'],
-    'Stopbits': ['1', '2']
-}
-
-# Estruturas padrão para cada tipo de servidor
-estrutura_servidor = {
-    'TCP': {'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1},
-    'RTU': {'ID':1, 'Porta Serial': 'COM3', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
-}
-
-funcoes_modbus = {
-    'Write_Single_Coil': {
-        'parametros': {
-            'address': 0,
-            'value': ['0','1']
-        }
-    },
-    'Write_Multiple_Coils': {
-        'parametros': {
-            'address': 0,
-            'count': 1,
-            'value': ['0','1']
-        }
-    },
-    'Read_Single_Coil': {
-        'parametros': {
-            'address': 0,
-            'sample delay': 1
-        }
-    },
-    'Write_Single_Register': {
-        'parametros': {
-            'address': 0,
-            'value': 0
-        }
-    },
-    'Write_Multiple_Registers': {
-        'parametros': {
-            'address': 0,
-            'count': 1,
-            'value': 0
-        }
-    },
-    'Read_Single_Register': {
-        'parametros': {
-            'address': 0,
-            'sample delay': 1
-        }
-    },
-}
-
+# Traduções dos parâmetros dos widgets
 traducoes_parametros = {
     'text': 'Texto',
     'font': 'Fonte',
@@ -142,8 +88,9 @@ traducoes_parametros = {
     'onvalue': 'Valor Ligado',
     'offvalue': 'Valor Desligado'
 }
+# Traduções reversas, dic de suporte
 traducoes_reverse = {v: k for k, v in traducoes_parametros.items()}
-
+# Propriedades que possuem valores pré-definidos
 parametros_especiais = {
     'cores': [
         'text_color',
@@ -177,4 +124,59 @@ parametros_especiais = {
         'padx',
         'pady'
     ]
+}
+#################### Dicionários relacionados ao modbus ####################
+# Opções para os Combobox modbus
+selecionaveis_modbus = {
+    'Conexão': ['TCP', 'RTU'],
+    'Baudrate': ['9600', '19200', '38400', '57600', '115200'],
+    'Paridade': ['N', 'P', 'I'],
+    'Bytesize': ['8', '7'],
+    'Stopbits': ['1', '2']
+}
+# Estruturas padrão para cada tipo de servidor
+estrutura_servidor = {
+    'TCP': {'IP': '192.168.0.200', 'Porta': 1502, 'Timeout (s)': 1},
+    'RTU': {'ID':1, 'Porta Serial': 'COM3', 'Baudrate': '9600', 'Paridade': 'N', 'Bytesize': 8, 'Stopbits': 1, 'Timeout (s)': 1}
+}
+# Funções modbus possíveis
+funcoes_modbus = {
+    'Write_Single_Coil': {
+        'parametros': {
+            'address': 0,
+            'value': ['0','1']
+        }
+    },
+    'Write_Multiple_Coils': {
+        'parametros': {
+            'address': 0,
+            'count': 1,
+            'value': ['0','1']
+        }
+    },
+    'Read_Single_Coil': {
+        'parametros': {
+            'address': 0,
+            'sample_delay': 1
+        }
+    },
+    'Write_Single_Register': {
+        'parametros': {
+            'address': 0,
+            'value': 0
+        }
+    },
+    'Write_Multiple_Registers': {
+        'parametros': {
+            'address': 0,
+            'count': 1,
+            'value': 0
+        }
+    },
+    'Read_Single_Register': {
+        'parametros': {
+            'address': 0,
+            'sample_delay': 1
+        }
+    },
 }

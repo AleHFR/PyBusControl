@@ -4,11 +4,13 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
 from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
+import asyncio
 
 # Imports do projeto
-import drivers.plc_driver as plc
+import drivers.server_driver as sr
 import managers.widget_manager as wm
-import interface.personalized as ps
+import interface.customizados as ct
+from async_loop import loop
 
 # Classes axiliares pra trabalhar com o projeto
 class Atibuitos:
@@ -25,6 +27,64 @@ class Widget:
         self.posicao = posicao
         self.propriedades = propriedades
         self.comando = None
+        self.polling_task = None
+
+    def start_polling(self, servidor):
+        self.stop_polling()  # Garante que qualquer tarefa anterior seja parada
+
+        if not self.comando:
+            return
+
+        is_read_command = self.comando.get('funcao', '').startswith('Read')
+        params = self.comando.get('parametros', {})
+        delay_str = params.get('sample_delay')
+
+        try:
+            delay = float(delay_str) if delay_str else 1
+        except (ValueError, TypeError):
+            delay = 1
+
+        if is_read_command and delay > 0:
+            print(f"Widget (ID: {self.atributos.item}) iniciando polling...")
+            self.polling_task = asyncio.run_coroutine_threadsafe(
+                self._polling_loop(servidor, delay),
+                loop
+            )
+
+    # NOVO: Para a tarefa de polling
+    def stop_polling(self):
+        if self.polling_task:
+            print(f"Widget (ID: {self.atributos.item}) parando polling.")
+            self.polling_task.cancel()
+            self.polling_task = None
+
+    # NOVO: O loop de polling que vive dentro do widget
+    async def _polling_loop(self, servidor, delay):
+        funcao = self.comando['funcao']
+        params = self.comando['parametros']
+        address = params.get('address')
+        value = params.get('value')
+        count = params.get('count')
+
+        try:
+            while True:
+                if not servidor.status:
+                    # Se o servidor não estiver conectado, espera e tenta de novo
+                    await asyncio.sleep(delay)
+                    continue
+
+                resultado = await servidor.comand(funcao, address, value, count)
+
+                if resultado is not None and hasattr(self.atributos.item, 'atualizar'):
+                    self.atributos.item.atualizar(resultado)
+                
+                await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            print("Polling cancelado para o widget.")
+            if hasattr(self.atributos.item, 'atualizar'):
+                self.atributos.item.atualizar("Parado") # Atualiza a UI
+        except Exception as e:
+            print(f"Erro no loop de polling do widget: {e}")
 
 class Aba:
     def __init__(self, tamanho:tuple):
@@ -36,10 +96,45 @@ class Aba:
 # Classe principal do projeto
 class Projeto:
     def __init__(self, root):
-        self.notebook = ps.customNotebook(root)
+        self.notebook = ct.customNotebook(root)
         self.notebook.pack(side='bottom', fill='both', expand=True)
         self.abas = {}
         self.servidores = {}
+
+    def toDict(self):
+        dados_projeto = {}
+        # 1. Serializar as abas
+        abas_dict = {}
+        for nome_aba, aba_objeto in self.abas.items():
+            # Copia todos os atributos do objeto da aba
+            aba_dados = vars(aba_objeto).copy()
+
+            # Remove a chave 'atributos' e outras que não devem ser serializadas
+            if 'atributos' in aba_dados:
+                del aba_dados['atributos']
+
+            # Serializa os widgets da aba, se existirem
+            if hasattr(aba_objeto, 'widgets'):
+                widgets_dict = {}
+                for nome_widget, widget_objeto in aba_objeto.widgets.items():
+                    # Serializa o widget, ignorando referências de objetos
+                    widget_dados = vars(widget_objeto).copy()
+                    if 'atributos' in widget_dados:
+                        del widget_dados['atributos']
+                    widgets_dict[nome_widget] = widget_dados
+                aba_dados['widgets'] = widgets_dict
+            
+            abas_dict[nome_aba] = aba_dados
+        dados_projeto['abas'] = abas_dict
+
+        # 2. Serializar os servidores
+        servidores_dict = {}
+        for nome_servidor, servidor_objeto in self.servidores.items():
+            # Vars() para obter todas as propriedades do objeto do servidor
+            servidores_dict[nome_servidor] = vars(servidor_objeto)
+        dados_projeto['servidores'] = servidores_dict
+
+        return dados_projeto
 
     def exibir(self):
         def print_propriedades_em_colunas(propriedades, colunas=5):
@@ -103,7 +198,7 @@ class Projeto:
                         if widget_obj.comando:
                             print(f'        - Comando Associado: {widget_obj.comando}')
                         print(f'        - Propriedades:')
-                        print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)
+                        print(f'        - {print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)}')
 
         print('\n' + '-'*30 + '\n')
 
@@ -166,18 +261,17 @@ class Projeto:
         elif chave == 'tamanho':
             x, y = valor
             aba.atributos.canvas.config(width=x, height=y)
+            aba.tamanho = (x, y)
 
         elif chave == 'imagem':
-            if valor not in [None, '', ' ']:
-                return
             aba.caminho_imagem = valor
-            aba.atributos.imagem = ps.imagem(valor)
+            aba.atributos.imagem = ct.imagem(valor)
             canvas = aba.atributos.canvas
             canvas.image_ref = aba.atributos.imagem
             canvas.create_image(
                 canvas.winfo_width()/2,
                 canvas.winfo_height()/2,
-                image=canvas.image_ref,
+                image=aba.atributos.imagem,
                 anchor='center'
             )
 
@@ -192,7 +286,7 @@ class Projeto:
     ########## Adicionar um servidor ##########
     def add_servidor(self, nome_servidor, conexao, configs):
         if nome_servidor not in self.servidores.keys():
-            servidor = plc.Plc(conexao, configs)
+            servidor = sr.Server(conexao, configs)
             self.servidores[nome_servidor] = servidor
 
     ########## Mudar o nome do servidor ##########
@@ -221,7 +315,7 @@ class Projeto:
         canvas = aba.atributos.canvas
         # Menu de contexto do Widget
         def menuContexto_widget(event):
-            context_menu = ps.customMenu(canvas)
+            context_menu = ct.customMenu(canvas)
             context_menu.add_command(label='Mover', command=lambda:self.move_widget(wid))
             context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades(self, wid))
             context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
@@ -249,7 +343,7 @@ class Projeto:
         item = widget.atributos.item
         # Altera o widget na visualização
         if prop == 'image' and novo_valor not in [None, '', ' ']: # Trata o valor se for imagem
-            imagem = ps.imagem(novo_valor)
+            imagem = ct.imagem(novo_valor)
             item.configure(image=imagem)
             widget.atributos.image = imagem # Salva a imagem
         elif prop == 'font': # Trata o valor se for fonte
@@ -270,7 +364,7 @@ class Projeto:
         # posição inicial do item no canvas
         x0, y0 = canvas.coords(wid)
         # Dica
-        dica = ps.ClickTooltip(canvas, text='Clique e arraste para mover o widget')
+        dica = ct.ClickTooltip(canvas, text='Clique e arraste para mover o widget')
         dica.show_tooltip()
 
         # calcula offset entre clique e posição do widget
@@ -315,6 +409,9 @@ class Projeto:
         aba = self.abas[nome_aba]
         widget = aba.widgets[wid].atributos.item
         canvas = aba.atributos.canvas
+        # Deleta o widget
         widget.destroy()
         canvas.delete(wid)
+        # Atualiza o projeto
+        del aba.widgets[wid]
         

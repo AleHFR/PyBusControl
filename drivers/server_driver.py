@@ -1,6 +1,6 @@
 from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
 
-class Plc:
+class Server:
     def __init__(self, conexao: str, parametros: dict):
         self.conexao = conexao
         self.client = None

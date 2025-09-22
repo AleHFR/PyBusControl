@@ -6,7 +6,7 @@ import platform
 
 # Imports do projeto
 import interface.interface_principal as ip
-import interface.personalized as cw
+import interface.customizados as ct
 
 ########## Loop pra rodar os servidores em background ##########
 import async_loop
@@ -25,15 +25,18 @@ def maximizar_janela():
         root.attributes('-zoomed', True)
 
 ########## Menu ##########
-menu_bar = cw.customMenu(root)
+menu_bar = ct.customMenu(root)
 root.config(menu=menu_bar)
 
 # Criar um menu de arquivo
-menu_arquivo = cw.customMenu(menu_bar)
+menu_arquivo = ct.customMenu(menu_bar)
 menu_bar.add_cascade(label="Arquivo", menu=menu_arquivo)
 menu_arquivo.add_command(label="Novo Projeto", command=lambda:ip.novo_projeto(root))
+menu_arquivo.add_command(label="Abrir Projeto", command=lambda:ip.abrir_projeto(root))
 menu_arquivo.add_separator()
+menu_arquivo.add_command(label="Tela Cheia", command=lambda:ip.tela_cheia(root))
 menu_arquivo.add_command(label="Preferências", command=lambda:ip.preferencias())
+menu_arquivo.add_separator()
 menu_arquivo.add_command(label="Sair", command=root.quit)
 
 ##########  ##########
@@ -53,6 +56,7 @@ frame_btn = ctk.CTkFrame(frame_central, fg_color='transparent', corner_radius=0)
 frame_btn.grid(row=0, column=0, padx=20, pady=20, sticky='ns')
 
 ctk.CTkButton(frame_btn, text='Novo Projeto', command=lambda:ip.novo_projeto(root)).pack(pady=5, fill='x')
+ctk.CTkButton(frame_btn, text='Abrir Projeto', command=lambda:ip.abrir_projeto(root)).pack(pady=5, fill='x')
 
 # Coluna da direita (arquivos recentes)
 frame_arquivos = ctk.CTkFrame(frame_central, fg_color='transparent', corner_radius=0)

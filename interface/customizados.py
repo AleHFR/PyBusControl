@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
 from PIL import Image
+from tkinter import filedialog
 
 # arrumar
 class customMenu(tk.Menu):
@@ -13,7 +14,7 @@ class customMenu(tk.Menu):
         # activefg = ctk.ThemeManager.theme["CTkButton"]["text_color"][0] if ctk.get_appearance_mode() == "Light" else ctk.ThemeManager.theme[ref]["text_color"][1]
 
         super().__init__(root, tearoff=0, **kwargs)
-
+# arrumar
 class customLabelFrame(ttk.LabelFrame):
     def __init__(self, root, **kwargs):
         # Adapta ao tema do customtkinter
@@ -27,7 +28,7 @@ class customLabelFrame(ttk.LabelFrame):
 
         # Inicializa o LabelFrame com o estilo
         super().__init__(root, **kwargs)
-
+# arrumar
 class customNotebook(ttk.Notebook):
     def __init__(self, root, **kwargs):
         # # Adapta ao tema do customtkinter
@@ -41,6 +42,27 @@ class customNotebook(ttk.Notebook):
 
         # Inicializa o Notebook com o estilo
         super().__init__(root, **kwargs)
+
+class customBuscaArquivo(ctk.CTkFrame):
+    def __init__(self, root, tamanho:int=200, valor_inicial:str=None, button_name:str=None, **kwargs):
+        super().__init__(root, fg_color="transparent")
+        self.valor_inicial = valor_inicial if valor_inicial else 'Selecione o arquivo...'
+        self.button_name = button_name if button_name else '...'
+
+        self.botao = ctk.CTkButton(self, text=self.button_name, width=25, command=self.buscar)
+        self.botao.pack(padx=(5,0), side='right')
+
+        self.entry = ctk.CTkEntry(self, width=tamanho - 30, **kwargs)
+        self.entry.insert(0, self.valor_inicial)
+        self.entry.pack(fill='x', side='left')
+
+    def buscar(self):
+        arquivo = filedialog.askopenfilename()
+        self.entry.delete(0, ctk.END)
+        self.entry.insert(0, arquivo)
+
+    def get(self):
+        return self.entry.get()
 
 class customSpinbox(ctk.CTkFrame):
     def __init__(self, master, min_value=0, max_value=100, step=1, initial_value=0, width=100, **kwargs):
@@ -94,7 +116,7 @@ class customSpinbox(ctk.CTkFrame):
             return None
 
 class customDialog(ctk.CTkToplevel):
-    def __init__(self, title: str, message: str, **kwargs):
+    def __init__(self, title:str, message:str, tipo:str=None, **kwargs):
         super().__init__(tk._default_root, **kwargs)
         self.geometry("300x150")
         self.resizable(False, False)
@@ -125,21 +147,28 @@ class customDialog(ctk.CTkToplevel):
         button_frame = ctk.CTkFrame(self, fg_color="transparent")
         button_frame.pack(pady=(0, 5))
 
-        yes_button = ctk.CTkButton(button_frame, text="Sim", command=lambda:on_yes(), width=100)
+        yes_button = ctk.CTkButton(button_frame, text="Sim", command=on_yes, width=100)
         yes_button.pack(side="left", padx=10)
 
-        no_button = ctk.CTkButton(button_frame, text="Não", command=lambda:on_no(), width=100)
+        no_button = ctk.CTkButton(button_frame, text="Não", command=on_no, width=100)
         no_button.pack(side="left", padx=10)
         
         self.wait_window()
         return self.result
 
 class customTopLevel(ctk.CTkToplevel):
-    def __init__(self, title, geometry=None, resizable=None, scrollbar=True, buttonSet=True, command=None, buttonName=None, **kwargs):
+    def __init__(self, title, geometry=None, resizable=None, scrollbar=True, Notebook=False, buttonSet=True, command=None, buttonName=None, **kwargs):
         super().__init__(tk._default_root, **kwargs)
         self.title(title)
         self.transient(tk._default_root)
         self.grab_set()
+        # Frame interno
+        self.frame_interno = ctk.CTkScrollableFrame(self, fg_color="transparent") if scrollbar else ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
+        # Notebook
+        if Notebook:
+            self.notebook = customNotebook(self.frame_interno)
+            self.notebook.pack(fill='both', expand=True)
 
         # Variáveis 
         self.itens = {}
@@ -158,29 +187,26 @@ class customTopLevel(ctk.CTkToplevel):
                 if command:
                     command()
             ctk.CTkButton(frame_botao, text=buttonName if buttonName else 'Aplicar', command=aplicar).pack()
-
-        # Frame interno
-        self.frame_interno = ctk.CTkScrollableFrame(self, fg_color="transparent") if scrollbar else ctk.CTkFrame(self, fg_color="transparent")
-        self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
     
-    def addTopLabel(self, text:str, root=None, **kargs):
+    def addTopLabel(self, text:str, root=None):
         # Verifica se tem um frame externo, se não usa o interno
         root = root if root else self.frame_interno
         # Simplesmente uma label no topo
-        ctk.CTkLabel(root, text=text, **kargs).pack(padx=5, pady=5, fill='x', side='top')
+        ctk.CTkLabel(root, text=text).pack(padx=5, pady=5, fill='x', side='top')
 
-    def addItem(self, nome:str, item, tamanho:int=None, valor_inicial=None, root=None, **kargs):
+    def addItem(self, nome:str, item, tamanho:int=200, valor_inicial=None, root=None, **kwargs):
         # Verifica se tem um frame externo, se não usa o interno
         root = root if root else self.frame_interno
         # Cria um frame temporário
         frame_temp = ctk.CTkFrame(root, fg_color="transparent")
-        frame_temp.pack(fill='x', pady=2, padx=2)
+        frame_temp.pack(fill='x')
         # Inclui o nomde do item
         ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
-        # Cria o item de acordo com o tipo
-        tamanho = tamanho if tamanho else 200
-        item = item(frame_temp, width=tamanho, **kargs)
-        item.pack(side='right')
+        try: # Cria o item de acordo com o tipo
+            item = item(frame_temp, width=tamanho, **kwargs)
+            item.pack(side='right')
+        except: # Se já existir, só coloca
+            item.pack(side='right')
         # Trata a atribuição de acordo com o tipo
         if isinstance(item, (ctk.CTkEntry, ctk.CTkTextbox)):
             item.delete(0, ctk.END)
@@ -189,13 +215,12 @@ class customTopLevel(ctk.CTkToplevel):
         elif isinstance(item, (ctk.CTkComboBox, ctk.CTkOptionMenu, ctk.CTkCheckBox, ctk.CTkSwitch)):
             if valor_inicial is not None:
                 item.set(valor_inicial)
-
         # Salva no dicionário
         self.itens[nome] = item
         # retorna o item
         return item
-    
-    def addButtonItem(self, nome:str, comando, tamanho:int=None, valor_inicial=None, root=None, **kargs):
+
+    def addTupleItem(self, nome:str, item_1, item_2, tamanho:int=200, valor_inicial_1=None, valor_inicial_2=None, root=None):
         # Verifica se tem um frame externo, se não usa o interno
         root = root if root else self.frame_interno
         # Cria um frame temporário
@@ -203,31 +228,31 @@ class customTopLevel(ctk.CTkToplevel):
         frame_temp.pack(fill='x', pady=2, padx=2)
         # Inclui o nomde do item
         ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
-        # Cria o botão
-        ctk.CTkButton(frame_temp, text='...', width=30, command=lambda:comando()).pack(side='right', padx=(5,0))
-        # Cria uma entry com botão do lado
-        tamanho = tamanho if tamanho else 200
-        item = ctk.CTkEntry(frame_temp, width=tamanho-35, **kargs)
-        item.pack(side='right')
-        # Insere o valor
-        item.insert(0, valor_inicial)
-        # Salva no dicionário
-        self.itens[nome] = item
-        # retorna o item
-        return item
+        # Cria o item de acordo com o tipo dinamicamente
+        items = {item_1:valor_inicial_1, item_2:valor_inicial_2}
+        for item, valor_inicial in items.items():
+            item = item(frame_temp, width=tamanho)
+            item.pack(side='right', )
+            # Trata a atribuição de acordo com o tipo
+            if isinstance(item, (ctk.CTkEntry, ctk.CTkTextbox)):
+                item.delete(0, ctk.END)
+                if valor_inicial is not None:
+                    item.insert(0, valor_inicial)
+            elif isinstance(item, (ctk.CTkComboBox, ctk.CTkOptionMenu, ctk.CTkCheckBox, ctk.CTkSwitch)):
+                if valor_inicial is not None:
+                    item.set(valor_inicial)
 
-class customNotebookTopLevel(customTopLevel):
-    def __init__(self, title, geometry=None, resizable=None, buttonSet=True, command=None, buttonName=None, **kwargs):
-        super().__init__(title, geometry=geometry, resizable=resizable, scrollbar=True, buttonSet=buttonSet, command=command, buttonName=buttonName, **kwargs)
-        self.notebook = ttk.Notebook(self.frame_interno)
-        self.notebook.pack(fill='both', expand=True)
+            # Salva no dicionário
+            self.itens[nome] = item
+        # retorna o item
+        return 
 
     def addTab(self, title, **kwargs):
         frame = ctk.CTkFrame(self.notebook, fg_color="transparent")
         self.notebook.add(frame, text=title, **kwargs)
         self.notebook.select(frame)
         return frame
-
+    
 class ClickTooltip(ctk.CTkToplevel):
     def __init__(self, master, text="Tooltip", **kwargs):
         super().__init__(master, **kwargs)
@@ -277,9 +302,13 @@ class ClickTooltip(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
         self.update_idletasks()
 
-def imagem(nome, tamanho_icone=None):
-    caminho_icone = os.path.join(os.path.dirname(__file__), 'assets', nome)
-    image = Image.open(caminho_icone)
-    if tamanho_icone:image = ctk.CTkImage(light_image=image, dark_image=image, size=tamanho_icone)
-    else: image = ctk.CTkImage(light_image=image, dark_image=image)
-    return image
+def imagem(caminho:str, tamanho_icone:tuple[int, int] = None):
+    caminho_completo = None
+    if os.path.isabs(caminho):
+        caminho_completo = caminho
+    else:
+        caminho_completo = os.path.join(os.path.dirname(__file__), 'assets', caminho)
+    imagem = Image.open(caminho_completo)
+    if tamanho_icone:imagem = ctk.CTkImage(light_image=imagem, dark_image=imagem, size=tamanho_icone)
+    else: imagem = ctk.CTkImage(light_image=imagem, dark_image=imagem)
+    return imagem
