@@ -164,7 +164,7 @@ class customTopLevel(ctk.CTkToplevel):
         self.grab_set()
         # Frame interno
         self.frame_interno = ctk.CTkScrollableFrame(self, fg_color="transparent") if scrollbar else ctk.CTkFrame(self, fg_color="transparent")
-        self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=(10, 5))
+        self.frame_interno.pack(side='top', fill='both', expand=True, padx=10, pady=10)
         # Notebook
         if Notebook:
             self.notebook = customNotebook(self.frame_interno)
@@ -182,7 +182,7 @@ class customTopLevel(ctk.CTkToplevel):
         # Botão
         if buttonSet:
             frame_botao = ctk.CTkFrame(self, fg_color="transparent")
-            frame_botao.pack(side='bottom', fill='x', padx=10, pady=(5, 10))
+            frame_botao.pack(side='bottom', fill='x', padx=10, pady=10)
             def aplicar():
                 if command:
                     command()
@@ -192,14 +192,14 @@ class customTopLevel(ctk.CTkToplevel):
         # Verifica se tem um frame externo, se não usa o interno
         root = root if root else self.frame_interno
         # Simplesmente uma label no topo
-        ctk.CTkLabel(root, text=text).pack(padx=5, pady=5, fill='x', side='top')
+        ctk.CTkLabel(root, text=text).pack(fill='x', side='top', pady=5)
 
     def addItem(self, nome:str, item, tamanho:int=200, valor_inicial=None, root=None, **kwargs):
         # Verifica se tem um frame externo, se não usa o interno
         root = root if root else self.frame_interno
         # Cria um frame temporário
         frame_temp = ctk.CTkFrame(root, fg_color="transparent")
-        frame_temp.pack(fill='x')
+        frame_temp.pack(fill='x', pady=5)
         # Inclui o nomde do item
         ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
         try: # Cria o item de acordo com o tipo
@@ -225,7 +225,7 @@ class customTopLevel(ctk.CTkToplevel):
         root = root if root else self.frame_interno
         # Cria um frame temporário
         frame_temp = ctk.CTkFrame(root, fg_color="transparent")
-        frame_temp.pack(fill='x', pady=2, padx=2)
+        frame_temp.pack(fill='x', pady=5)
         # Inclui o nomde do item
         ctk.CTkLabel(frame_temp, text=nome).pack(side='left')
         # Cria o item de acordo com o tipo dinamicamente

@@ -142,41 +142,46 @@ estrutura_servidor = {
 # Funções modbus possíveis
 funcoes_modbus = {
     'Write_Single_Coil': {
+        'requisicao':'unica',
         'parametros': {
             'address': 0,
             'value': ['0','1']
-        }
-    },
-    'Write_Multiple_Coils': {
-        'parametros': {
-            'address': 0,
-            'count': 1,
-            'value': ['0','1']
-        }
-    },
-    'Read_Single_Coil': {
-        'parametros': {
-            'address': 0,
-            'sample_delay': 1
         }
     },
     'Write_Single_Register': {
+        'requisicao':'unica',
         'parametros': {
             'address': 0,
             'value': 0
         }
     },
-    'Write_Multiple_Registers': {
+    # 'Write_Multiple_Coils': {
+    #     'requisicao':'unica',
+    #     'parametros': {
+    #         'address': 0,
+    #         'count': 1,
+    #         'value': ['0','1']
+    #     }
+    # },
+    # 'Write_Multiple_Registers': {
+    #     'requisicao':'unica',
+    #     'parametros': {
+    #         'address': 0,
+    #         'count': 1,
+    #         'value': 0
+    #     }
+    # },
+    'Read_Single_Coil': {
+        'requisicao':'continua',
         'parametros': {
             'address': 0,
-            'count': 1,
-            'value': 0
         }
     },
     'Read_Single_Register': {
+        'requisicao':'continua',
         'parametros': {
             'address': 0,
-            'sample_delay': 1
         }
     },
+    
 }

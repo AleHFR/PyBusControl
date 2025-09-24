@@ -33,7 +33,6 @@ def configurar_servidores(projeto):
     btns = {
         'Adicionar TCP': {'command': lambda: adicionar_servidor('TCP'), 'image': 'tcp.png'},
         'Adicionar RTU': {'command': lambda: adicionar_servidor('RTU'), 'image': 'rtu.png'},
-        # 'Adicionar Gateway': {'command': lambda: adicionar_servidor('GATEWAY'), 'image': 'gateway.png'},
         'Mudar Nome': {'command': lambda:mudar_nome(), 'image': 'edit.png'},
         'Salvar': {'command': lambda:salvar_servidor(), 'image': 'save.png'},
         'Remover': {'command': lambda:remover_servidor(), 'image': 'del.png'},
@@ -64,12 +63,12 @@ def configurar_servidores(projeto):
     def atualizar_campos(server):
         # Pega o servidor selecionado e suas configurações
         nonlocal server_sel
-        server_sel = servidores[server]
-        configs = {i: k for i, k in vars(server_sel).items() if i not in ['conexao', 'client', 'status','id']}
+        server_sel = server
+        configs = {i: k for i, k in vars(servidores[server_sel]).items() if i not in ['conexao', 'client', 'status', 'id', 'tarefas', 'cache']}
 
         # Verifica se tem algum servidor selecionado
         for bt in lista.winfo_children():
-            if bt.cget('text') == server:
+            if bt.cget('text') == server_sel:
                 bt.configure(fg_color='lightblue',
                              text_color='black')
             else:
@@ -154,7 +153,7 @@ def configurar_servidores(projeto):
             # Salva as configurações
             chave = label_widget.cget('text').replace(':', '')
             valor = entry_widget.get()
-            setattr(server_sel, chave, valor)
+            projeto.config_servidor(server_sel, chave, valor)
 
     # Função para remover um servidor
     def remover_servidor():

@@ -37,7 +37,7 @@ def novo_projeto(root):
         'Configurar Servidores':{'command': lambda:sm.configurar_servidores(projeto),'icone': 'servidor.png',},
         'Conectar Servidores':{'command': lambda:sm.conectar_servidores(projeto),'icone': 'conectar.png',},
         'Adicionar Widget':{'command': lambda:wm.adicionar_widget(projeto),'icone': 'widget.png',},
-        'Exibir':{'command': lambda:salvar_projeto(projeto),'icone': 'save.png',}
+        'Exibir':{'command': lambda:projeto.exibir(),'icone': 'save.png',}
     }
     
     for nome_botao, cfg in itens.items(): # Cria os botões

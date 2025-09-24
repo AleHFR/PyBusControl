@@ -8,89 +8,18 @@ import asyncio
 
 # Imports do projeto
 import drivers.server_driver as sr
+import drivers.widgets_driver as wd
 import managers.widget_manager as wm
 import interface.customizados as ct
-from async_loop import loop
 
-# Classes axiliares pra trabalhar com o projeto
-class Atibuitos:
-    def __init__(self):
-        self.classe = None
+# Classe axiliar pra trabalhar com o projeto
+class Aba:
+    def __init__(self, tamanho:tuple):
+        self.tamanho = tamanho
+        self.caminho_imagem = None
         self.item = None
         self.canvas = None
         self.imagem = None
-
-class Widget:
-    def __init__(self, classe:str, posicao:tuple, propriedades:dict):
-        self.atributos = Atibuitos()
-        self.classe = classe
-        self.posicao = posicao
-        self.propriedades = propriedades
-        self.comando = None
-        self.polling_task = None
-
-    def start_polling(self, servidor):
-        self.stop_polling()  # Garante que qualquer tarefa anterior seja parada
-
-        if not self.comando:
-            return
-
-        is_read_command = self.comando.get('funcao', '').startswith('Read')
-        params = self.comando.get('parametros', {})
-        delay_str = params.get('sample_delay')
-
-        try:
-            delay = float(delay_str) if delay_str else 1
-        except (ValueError, TypeError):
-            delay = 1
-
-        if is_read_command and delay > 0:
-            print(f"Widget (ID: {self.atributos.item}) iniciando polling...")
-            self.polling_task = asyncio.run_coroutine_threadsafe(
-                self._polling_loop(servidor, delay),
-                loop
-            )
-
-    # NOVO: Para a tarefa de polling
-    def stop_polling(self):
-        if self.polling_task:
-            print(f"Widget (ID: {self.atributos.item}) parando polling.")
-            self.polling_task.cancel()
-            self.polling_task = None
-
-    # NOVO: O loop de polling que vive dentro do widget
-    async def _polling_loop(self, servidor, delay):
-        funcao = self.comando['funcao']
-        params = self.comando['parametros']
-        address = params.get('address')
-        value = params.get('value')
-        count = params.get('count')
-
-        try:
-            while True:
-                if not servidor.status:
-                    # Se o servidor não estiver conectado, espera e tenta de novo
-                    await asyncio.sleep(delay)
-                    continue
-
-                resultado = await servidor.comand(funcao, address, value, count)
-
-                if resultado is not None and hasattr(self.atributos.item, 'atualizar'):
-                    self.atributos.item.atualizar(resultado)
-                
-                await asyncio.sleep(delay)
-        except asyncio.CancelledError:
-            print("Polling cancelado para o widget.")
-            if hasattr(self.atributos.item, 'atualizar'):
-                self.atributos.item.atualizar("Parado") # Atualiza a UI
-        except Exception as e:
-            print(f"Erro no loop de polling do widget: {e}")
-
-class Aba:
-    def __init__(self, tamanho:tuple):
-        self.atributos = Atibuitos()
-        self.tamanho = tamanho
-        self.caminho_imagem = None
         self.widgets = {}
 
 # Classe principal do projeto
@@ -198,7 +127,7 @@ class Projeto:
                         if widget_obj.comando:
                             print(f'        - Comando Associado: {widget_obj.comando}')
                         print(f'        - Propriedades:')
-                        print(f'        - {print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)}')
+                        print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)
 
         print('\n' + '-'*30 + '\n')
 
@@ -211,6 +140,13 @@ class Projeto:
                 print(f'-> Nome do Servidor: {nome_servidor}')
                 print(f'   - Conexão: {server_obj.conexao}')
                 print(f'   - Status: {server_obj.status}')
+                # Exibe as tarefas caso existam
+                if server_obj.tarefas != []:
+                    print(f'   - Tarefas:')
+                    for tarefa in server_obj.tarefas:
+                        print(f'    - {tarefa}')
+                else:
+                    print(f'   - Nenhuma tarefa:')
                 # Exibe os parâmetros específicos para cada tipo de conexão
                 if server_obj.conexao == 'TCP':
                     print(f'   - IP: {server_obj.ip}')
@@ -239,8 +175,8 @@ class Projeto:
         self.notebook.select(frame)
         # Guarda no projeto
         aba = Aba(tamanho=(x, y))
-        aba.atributos.canvas = canvas
-        aba.atributos.item = frame
+        aba.canvas = canvas
+        aba.item = frame
         self.abas[nome] = aba
 
     ########## Configura uma aba no notebook ##########
@@ -260,18 +196,18 @@ class Projeto:
 
         elif chave == 'tamanho':
             x, y = valor
-            aba.atributos.canvas.config(width=x, height=y)
+            aba.canvas.config(width=x, height=y)
             aba.tamanho = (x, y)
 
         elif chave == 'imagem':
             aba.caminho_imagem = valor
-            aba.atributos.imagem = ct.imagem(valor)
-            canvas = aba.atributos.canvas
-            canvas.image_ref = aba.atributos.imagem
+            aba.imagem = ct.imagem(valor)
+            canvas = aba.canvas
+            canvas.image_ref = aba.imagem
             canvas.create_image(
                 canvas.winfo_width()/2,
                 canvas.winfo_height()/2,
-                image=aba.atributos.imagem,
+                image=aba.imagem,
                 anchor='center'
             )
 
@@ -312,7 +248,7 @@ class Projeto:
         frame = self.notebook.select()
         nome_aba = self.notebook.tab(frame, 'text')
         aba = self.abas[nome_aba]
-        canvas = aba.atributos.canvas
+        canvas = aba.canvas
         # Menu de contexto do Widget
         def menuContexto_widget(event):
             context_menu = ct.customMenu(canvas)
@@ -320,15 +256,13 @@ class Projeto:
             context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades(self, wid))
             context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
-        # Adiciona o widget na visualização
-        widgetTk = classe(canvas, **propriedades).get()
-        widgetTk.bind('<Button-3>', lambda event: menuContexto_widget(event)) # Cria o bind do menu de contexto
-        wid = canvas.create_window(x, y, window=widgetTk)
         # Salva no projeto
-        classetk = widgetTk.__class__.__name__
-        widget = Widget(classe=classetk, posicao=(x, y), propriedades=propriedades)
-        widget.atributos.item = widgetTk
-        widget.atributos.classe = classe
+        widget = classe(canvas=canvas, posicao=(x, y), **propriedades)
+        # Adiciona o widget na visualização
+        widgetTk = widget.get() # Resgata o item do customtkinter
+        widgetTk.bind('<Button-3>', lambda event: menuContexto_widget(event)) # Cria o bind do menu de contexto
+        wid = canvas.create_window(x, y, window=widgetTk) # Adiciona o widget no canvas
+        # Adiciona o widget na aba
         aba.widgets[wid] = widget
         # Retorna o id do widget
         return wid
@@ -340,12 +274,12 @@ class Projeto:
         nome_aba = self.notebook.tab(frame, 'text')
         aba = self.abas[nome_aba]
         widget = aba.widgets[wid]
-        item = widget.atributos.item
+        item = widget.item
         # Altera o widget na visualização
         if prop == 'image' and novo_valor not in [None, '', ' ']: # Trata o valor se for imagem
             imagem = ct.imagem(novo_valor)
             item.configure(image=imagem)
-            widget.atributos.image = imagem # Salva a imagem
+            widget.image = imagem # Salva a imagem
         elif prop == 'font': # Trata o valor se for fonte
             fonte = ctk.CTkFont(family=novo_valor[0], size=int(novo_valor[1]))
             item.configure(font=fonte)
@@ -360,7 +294,7 @@ class Projeto:
         frame = self.notebook.select()
         nome_aba = self.notebook.tab(frame, 'text')
         aba = self.abas[nome_aba]
-        canvas = aba.atributos.canvas
+        canvas = aba.canvas
         # posição inicial do item no canvas
         x0, y0 = canvas.coords(wid)
         # Dica
@@ -407,8 +341,8 @@ class Projeto:
         frame = self.notebook.select()
         nome_aba = self.notebook.tab(frame, 'text')
         aba = self.abas[nome_aba]
-        widget = aba.widgets[wid].atributos.item
-        canvas = aba.atributos.canvas
+        widget = aba.widgets[wid].item
+        canvas = aba.canvas
         # Deleta o widget
         widget.destroy()
         canvas.delete(wid)

@@ -1,5 +1,6 @@
 ########### Preâmbulo ############
 # Imports do python
+import tkinter as tk
 import customtkinter as ctk
 from CTkColorPicker import AskColor
 from tkinter import messagebox
@@ -27,7 +28,7 @@ def adicionar_widget(projeto):
     frame = projeto.notebook.select()
     nome_aba = projeto.notebook.tab(frame, 'text')
     aba = projeto.abas[nome_aba]
-    canvas = aba.atributos.canvas
+    canvas = aba.canvas
     
     # Habilita o click na tela pra definir onde o widget vai ficar
     def click(event):
@@ -44,9 +45,7 @@ def adicionar_widget(projeto):
             projeto.add_widget(classe, propriedades, x, y)
 
         # Encontra as classes de widgets
-        classes_encontradas = inspect.getmembers(wd, inspect.isclass)
-        classes_encontradas = [classe[0] for classe in classes_encontradas]
-        classes_encontradas.pop(classes_encontradas.index('Widget'))
+        classes_encontradas = list(dt.widgets_padrao.keys())
         # Cria um minimeu pra selecionar o widget
         context_menu = ct.customMenu(canvas)
         for tipo in classes_encontradas:
@@ -70,8 +69,8 @@ def propriedades(projeto, wid):
     nome_aba = projeto.notebook.tab(frame, 'text')
     aba = projeto.abas[nome_aba]
     widget = aba.widgets[wid]
-    item = widget.atributos.item
-    classe = widget.atributos.classe.__name__
+    item = widget.item
+    classe = widget.__class__.__name__
 
     # Cria a janela
     janela = ct.customTopLevel('Propriedades', geometry=(400, 400), buttonSet=True, resizable=(False, False), Notebook=True, command=lambda:salvar())
@@ -86,23 +85,30 @@ def propriedades(projeto, wid):
         entry_img.delete(0, ctk.END)
         entry_img.insert(0, caminho_imagem)
     def salvar():
-        # Puxa as informaçoes referentes ao comando
-        server = server_sel.get()
-        comando = comando_sel.get()
-        comando_dict = {'servidor': server, 'funcao': comando, 'parametros': {}}
-        # Itera dentro da janela
-        for frame in frame_comando.winfo_children():
-            label_widget = frame.winfo_children()[0]
-            entry_widget = frame.winfo_children()[1]
-            chave = label_widget.cget('text').replace(':', '')
-            valor = entry_widget.get()
-            # Insere no dicionário
-            comando_dict['parametros'][chave] = valor
-        widget.comando = comando_dict
-        servidor = projeto.servidores[server].client
-        widget.start_polling(servidor)
-        item.configure(command=lambda:executar_comando(projeto, widget.comando))
-        
+        # Verifica se o widget pode ter comando
+        nonlocal comando
+        if comando != []:
+            # Puxa as informaçoes referentes ao comando
+            server = server_sel.get()
+            comando = comando_sel.get()
+            if server and comando:
+                # Cria o dicionário
+                comando_dict = {'servidor': server, 'comando': comando, 'parametros': {}}
+                # Itera dentro da janela
+                for frame in frame_comando.winfo_children():
+                    label_widget = frame.winfo_children()[0]
+                    entry_widget = frame.winfo_children()[1]
+                    chave = label_widget.cget('text').replace(':', '')
+                    valor = entry_widget.get()
+                    # Insere no dicionário
+                    comando_dict['parametros'][chave] = valor
+                widget.comando = comando_dict
+                servidor = projeto.servidores[server].client
+                try:
+                    item.configure(command=lambda:executar_comando(projeto, widget))
+                except:
+                    executar_comando(projeto, widget)
+
         # Puxa as informaçoes referentes ao visual
         for frame in aba_visual.winfo_children():
             label = frame.winfo_children()[0].cget('text').replace(':', '')
@@ -120,35 +126,13 @@ def propriedades(projeto, wid):
                 valor = frame.winfo_children()[1].get()
             # Atualiza o widget
             projeto.config_widget(wid, param, valor)
-    
-    # Configura a aba de comando se houver
-    comando = dt.widgets_padrao[classe]['comando']
-    if comando != []:
-        aba_comando = janela.addTab('Comando')
-
-        servidores = list(projeto.servidores.keys())
-        server_sel = janela.addItem(root=aba_comando, nome='Servidor', item=ctk.CTkComboBox, state='readonly', command=lambda event:atualizar(), values=servidores, tamanho=200)
-        comando_sel = janela.addItem(root=aba_comando, nome='Comando', item=ctk.CTkComboBox, state='readonly', command=lambda event:atualizar(), values=comando, tamanho=200)
-
-        frame_comando = ctk.CTkFrame(aba_comando, fg_color='transparent')
-        frame_comando.pack(fill='x', pady=2, padx=2)
-        def atualizar():
-            if server_sel.get() and comando_sel.get():
-                # Limpa os parâmetros
-                for frame in frame_comando.winfo_children():
-                    frame.destroy()
-                # Pega os parâmetros
-                parametros = dt.funcoes_modbus[comando_sel.get()]['parametros']
-                for param, value in parametros.items():
-                    if type(value) == list:
-                        janela.addItem(root=frame_comando, nome=f'{param}:', item=ctk.CTkComboBox, state='readonly', values=value, tamanho=200)
-                    else:
-                        janela.addItem(root=frame_comando, nome=f'{param}:', item=ctk.CTkEntry, tamanho=200, valor_inicial=value)
 
     # Configura a aba de visual
     aba_visual = janela.addTab('Visual')
     # Cria todos os campos de parâmetros dinamicamente
     for param, value in widget.propriedades.items():
+        # Pula algumas propriedades não pertinentes
+        if param in ['textvariable']:continue
         # Cria um frame temporário simplesmente pra organizar os campos
         frame_temp = ctk.CTkFrame(aba_visual, fg_color='transparent')
         frame_temp.pack(fill='x', pady=2, padx=2)
@@ -186,16 +170,39 @@ def propriedades(projeto, wid):
             entry.insert(0, str(value))
             entry.pack(side='right')
     
-    # Seleciona a primeira aba
-    janela.notebook.select(aba_comando)
+    # Configura a aba de comando se houver
+    comando = dt.widgets_padrao[classe]['comando']
+    if comando != []:
+        aba_comando = janela.addTab('Comando')
 
-def executar_comando(projeto, comando_dict):
-    servidor = projeto.servidores[comando_dict['servidor']]
-    comando = comando_dict['funcao']
-    parametros = comando_dict['parametros']
-    address = parametros.get('address')
-    value = parametros.get('value')
-    count = parametros.get('count') if parametros.get('count') else None
-    sample_delay = parametros.get('sample_delay') if parametros.get('sample_delay') else None
-    # operacao = asyncio.run_coroutine_threadsafe(servidor.comand(comando, address, value, count, sample_delay),loop)
-    operacao = asyncio.run(servidor.comand(comando, address, value, count, sample_delay))
+        servidores = list(projeto.servidores.keys())
+        server_sel = janela.addItem(root=aba_comando, nome='Servidor', item=ctk.CTkComboBox, state='readonly', command=lambda event:atualizar(), values=servidores, tamanho=200)
+        comando_sel = janela.addItem(root=aba_comando, nome='Comando', item=ctk.CTkComboBox, state='readonly', command=lambda event:atualizar(), values=comando, tamanho=200)
+
+        frame_comando = ctk.CTkFrame(aba_comando, fg_color='transparent')
+        frame_comando.pack(fill='x')
+        def atualizar():
+            if server_sel.get() and comando_sel.get():
+                # Limpa os parâmetros
+                for frame in frame_comando.winfo_children():
+                    frame.destroy()
+                # Pega os parâmetros
+                parametros = dt.funcoes_modbus[comando_sel.get()]['parametros']
+                for param, value in parametros.items():
+                    if type(value) == list:
+                        janela.addItem(root=frame_comando, nome=f'{param}:', item=ctk.CTkComboBox, state='readonly', values=value, tamanho=200)
+                    else:
+                        janela.addItem(root=frame_comando, nome=f'{param}:', item=ctk.CTkEntry, tamanho=200, valor_inicial=value)
+
+def executar_comando(projeto, widget):
+    # Funcões de callback
+    def atualizar_display(valor):
+        widget.atualizar(valor)
+
+    def callback(valor):
+        tk._default_root.after(0, atualizar_display, valor)
+
+    # Solicita o comando ao servidor
+    servidor = projeto.servidores[widget.comando['servidor']]
+    comando_dict = widget.comando
+    servidor.addPolling(comando_dict, callback)

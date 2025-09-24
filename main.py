@@ -9,7 +9,7 @@ import interface.interface_principal as ip
 import interface.customizados as ct
 
 ########## Loop pra rodar os servidores em background ##########
-import async_loop
+import async_loop as al
 
 ########## Janela principal ##########
 root = ctk.CTk()
