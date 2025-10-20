@@ -3,14 +3,12 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
-from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
-import asyncio
 
 # Imports do projeto
 import drivers.server_driver as sr
 import drivers.widgets_driver as wd
 import managers.widget_manager as wm
-import interface.customizados as ct
+import customizados as ct
 
 # Classe axiliar pra trabalhar com o projeto
 class Aba:
@@ -25,151 +23,20 @@ class Aba:
 # Classe principal do projeto
 class Projeto:
     def __init__(self, root):
+        self.nome = "Novo Projeto"
         self.notebook = ct.customNotebook(root)
-        self.notebook.pack(side='bottom', fill='both', expand=True)
+        self.notebook.pack(side="bottom", fill="both", expand=True)
         self.abas = {}
         self.servidores = {}
-
-    def toDict(self):
-        dados_projeto = {}
-        # 1. Serializar as abas
-        abas_dict = {}
-        for nome_aba, aba_objeto in self.abas.items():
-            # Copia todos os atributos do objeto da aba
-            aba_dados = vars(aba_objeto).copy()
-
-            # Remove a chave 'atributos' e outras que não devem ser serializadas
-            if 'atributos' in aba_dados:
-                del aba_dados['atributos']
-
-            # Serializa os widgets da aba, se existirem
-            if hasattr(aba_objeto, 'widgets'):
-                widgets_dict = {}
-                for nome_widget, widget_objeto in aba_objeto.widgets.items():
-                    # Serializa o widget, ignorando referências de objetos
-                    widget_dados = vars(widget_objeto).copy()
-                    if 'atributos' in widget_dados:
-                        del widget_dados['atributos']
-                    widgets_dict[nome_widget] = widget_dados
-                aba_dados['widgets'] = widgets_dict
-            
-            abas_dict[nome_aba] = aba_dados
-        dados_projeto['abas'] = abas_dict
-
-        # 2. Serializar os servidores
-        servidores_dict = {}
-        for nome_servidor, servidor_objeto in self.servidores.items():
-            # Vars() para obter todas as propriedades do objeto do servidor
-            servidores_dict[nome_servidor] = vars(servidor_objeto)
-        dados_projeto['servidores'] = servidores_dict
-
-        return dados_projeto
-
-    def exibir(self):
-        def print_propriedades_em_colunas(propriedades, colunas=5):
-            # Converte o dicionário em uma lista de tuplas (chave, valor)
-            itens = list(propriedades.items())
-            num_itens = len(itens)
-            
-            # Calcula o número de linhas necessário
-            num_linhas = (num_itens + colunas - 1) // colunas
-            
-            # Cria uma lista de colunas, onde cada coluna é uma sublista de itens
-            colunas_de_itens = [itens[i * num_linhas : (i + 1) * num_linhas] for i in range(colunas)]
-            
-            # Armazena as larguras máximas de cada coluna para alinhamento
-            larguras_colunas = []
-            for coluna in colunas_de_itens:
-                max_chave = 0
-                max_valor = 0
-                for chave, valor in coluna:
-                    if len(str(chave)) > max_chave:
-                        max_chave = len(str(chave))
-                    if len(str(valor)) > max_valor:
-                        max_valor = len(str(valor))
-                larguras_colunas.append((max_chave, max_valor))
-
-            # Itera sobre as linhas e imprime as propriedades em colunas
-            for linha in range(num_linhas):
-                linha_impressao = ''
-                for i in range(colunas):
-                    if linha < len(colunas_de_itens[i]):
-                        chave, valor = colunas_de_itens[i][linha]
-                        
-                        # Formata a string de impressão com alinhamento dinâmico
-                        prop_formatada = f"{str(chave).ljust(larguras_colunas[i][0])} : {str(valor).ljust(larguras_colunas[i][1])}"
-                        linha_impressao += f" {prop_formatada.ljust(larguras_colunas[i][0] + larguras_colunas[i][1] + 3)}"
-                    else:
-                        # Se a coluna não tiver mais itens, preenche o espaço
-                        espaco_vazio = larguras_colunas[i][0] + larguras_colunas[i][1] + 3
-                        linha_impressao += ' ' * espaco_vazio
-                print(linha_impressao)
-            
-        print('--- Visão Geral do Projeto ---\n')
-
-        # Exibe as abas e seus widgets
-        print('### Abas ###')
-        if not self.abas:
-            print('Nenhuma aba criada.')
-        else:
-            for nome_aba, aba_obj in self.abas.items():
-                print(f'-> Nome da Aba: {nome_aba}')
-                print(f'   - Tamanho: {aba_obj.tamanho}')
-                print(f'   - Caminho da Imagem: {aba_obj.caminho_imagem}')
-                print(f'   - Widgets:')
-                if not aba_obj.widgets:
-                    print('     Nenhum widget nesta aba.')
-                else:
-                    for widget_id, widget_obj in aba_obj.widgets.items():
-                        print(f'     -> ID do Widget: {widget_id}')
-                        print(f'        - Classe: {widget_obj.classe}')
-                        print(f'        - Posição: {widget_obj.posicao}')
-                        if widget_obj.comando:
-                            print(f'        - Comando Associado: {widget_obj.comando}')
-                        print(f'        - Propriedades:')
-                        print_propriedades_em_colunas(widget_obj.propriedades, colunas=3)
-
-        print('\n' + '-'*30 + '\n')
-
-        # Exibe os servidores e seus detalhes
-        print('### Servidores ###')
-        if not self.servidores:
-            print('Nenhum servidor configurado.')
-        else:
-            for nome_servidor, server_obj in self.servidores.items():
-                print(f'-> Nome do Servidor: {nome_servidor}')
-                print(f'   - Conexão: {server_obj.conexao}')
-                print(f'   - Status: {server_obj.status}')
-                # Exibe as tarefas caso existam
-                if server_obj.tarefas != []:
-                    print(f'   - Tarefas:')
-                    for tarefa in server_obj.tarefas:
-                        print(f'    - {tarefa}')
-                else:
-                    print(f'   - Nenhuma tarefa:')
-                # Exibe os parâmetros específicos para cada tipo de conexão
-                if server_obj.conexao == 'TCP':
-                    print(f'   - IP: {server_obj.ip}')
-                    print(f'   - Porta: {server_obj.porta}')
-                    print(f'   - Timeout: {server_obj.timeout}s')
-                elif server_obj.conexao == 'RTU':
-                    print(f'   - ID: {server_obj.id}')
-                    print(f'   - Porta Serial: {server_obj.porta_serial}')
-                    print(f'   - Baudrate: {server_obj.baudrate}')
-                    print(f'   - Paridade: {server_obj.parity}')
-                    print(f'   - Timeout: {server_obj.timeout}s')
 
     #################### Trabalhando com as abas do Notebook ####################
     ########## Adiciona uma aba no notebook ##########
     def add_aba(self, nome):
-        if nome in self.abas.keys():
-            messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
-            return
         # Tamanho padrão
         x, y = 1280, 780
         # Adiciona uma aba
         frame = ctk.CTkFrame(self.notebook)
-        canvas = tk.Canvas(frame, width=x, height=y, bg='white', borderwidth=2)
+        canvas = tk.Canvas(frame, width=x, height=y, bg="white", borderwidth=2)
         canvas.pack()
         self.notebook.add(frame, text=nome)
         self.notebook.select(frame)
@@ -181,48 +48,52 @@ class Projeto:
 
     ########## Configura uma aba no notebook ##########
     def config_aba(self, chave, valor):
+        # Encontra a aba atual
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
         aba = self.abas[nome_aba]
-        
-        if chave == 'nome':
+
+        # Trata os dados de acordo com a propriedade
+        if chave == "nome":
             # Verifica se já existe uma aba com esse nome e se o nome é diferente do atual
             if valor != nome_aba and valor in self.abas.keys():
-                messagebox.showerror('Erro', 'Já existe uma aba com esse nome.')
+                messagebox.showerror("Erro", "Já existe uma aba com esse nome.")
                 return
             else:
                 self.notebook.tab(frame, text=valor)
                 self.abas[valor] = self.abas.pop(nome_aba)
 
-        elif chave == 'tamanho':
+        elif chave == "tamanho":
             x, y = valor
             aba.canvas.config(width=x, height=y)
             aba.tamanho = (x, y)
 
-        elif chave == 'imagem':
+        elif chave == "imagem":
             aba.caminho_imagem = valor
-            aba.imagem = ct.imagem(valor)
+            aba.imagem = ct.imagem(valor, para_tk=True)
             canvas = aba.canvas
             canvas.image_ref = aba.imagem
             canvas.create_image(
                 canvas.winfo_width()/2,
                 canvas.winfo_height()/2,
                 image=aba.imagem,
-                anchor='center'
+                anchor="center"
             )
 
     ########## Deleta uma aba no notebook ##########
     def del_aba(self):
+        # Encontra a aba atual
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
+        # Deleta a aba e apaga do projeto
         self.notebook.forget(frame)
         del self.abas[nome_aba]
 
     #################### Trabalhando com os Servidores ####################
     ########## Adicionar um servidor ##########
-    def add_servidor(self, nome_servidor, conexao, configs):
+    def add_servidor(self, nome_servidor):
         if nome_servidor not in self.servidores.keys():
-            servidor = sr.Server(conexao, configs)
+            servidor = sr.Server()
             self.servidores[nome_servidor] = servidor
 
     ########## Mudar o nome do servidor ##########
@@ -243,62 +114,72 @@ class Projeto:
 
     ####################  Trabalhando com os Widgets das abas ####################
     ########## Adicionar um widget ##########
-    def add_widget(self, classe, propriedades, x, y):
+    def add_widget(self, classe, x, y):
         # Encontra os atributos necessários
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
         aba = self.abas[nome_aba]
         canvas = aba.canvas
+
         # Menu de contexto do Widget
         def menuContexto_widget(event):
             context_menu = ct.customMenu(canvas)
-            context_menu.add_command(label='Mover', command=lambda:self.move_widget(wid))
-            context_menu.add_command(label='Propriedades', command=lambda:wm.propriedades(self, wid))
-            context_menu.add_command(label='Excluir', command=lambda:self.del_widget(wid))
+            context_menu.add_command(label="Mover", command=lambda:self.move_widget(wid))
+            context_menu.add_command(label="Comando", command=lambda:wm.comando(self, wid))
+            context_menu.add_command(label="Visual", command=lambda:wm.visual(self, wid))
+            context_menu.add_separator()
+            context_menu.add_command(label="Excluir", command=lambda:self.del_widget(wid))
             context_menu.post(event.x_root, event.y_root)
-        # Salva no projeto
-        widget = classe(canvas=canvas, posicao=(x, y), **propriedades)
+
+        # Cria objeto do widget
+        widget = getattr(wd, classe)(canvas=canvas, posicao=(x, y))
         # Adiciona o widget na visualização
         widgetTk = widget.get() # Resgata o item do customtkinter
-        widgetTk.bind('<Button-3>', lambda event: menuContexto_widget(event)) # Cria o bind do menu de contexto
+        widgetTk.bind("<Button-3>", lambda event: menuContexto_widget(event)) # Cria o bind do menu de contexto
         wid = canvas.create_window(x, y, window=widgetTk) # Adiciona o widget no canvas
-        # Adiciona o widget na aba
+
+        # Salva no projeto
         aba.widgets[wid] = widget
-        # Retorna o id do widget
-        return wid
+        return wid # Retorna o id do widget
 
     ########## Configurar o widget ##########
     def config_widget(self, wid, prop, novo_valor):
         # Encontra os atributos necessários
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
         aba = self.abas[nome_aba]
         widget = aba.widgets[wid]
         item = widget.item
-        # Altera o widget na visualização
-        if prop == 'image' and novo_valor not in [None, '', ' ']: # Trata o valor se for imagem
+
+        # Trata o valor se for imagem
+        if prop == "image":
+            widget.caminho_imagem = novo_valor # Salva o caminho da imagem
             imagem = ct.imagem(novo_valor)
-            item.configure(image=imagem)
-            widget.image = imagem # Salva a imagem
-        elif prop == 'font': # Trata o valor se for fonte
+            widget.image = imagem # Salva a referência da imagem
+            item.configure(image=widget.image)
+        # Trata o valor se for fonte
+        elif prop == "font":
             fonte = ctk.CTkFont(family=novo_valor[0], size=int(novo_valor[1]))
             item.configure(font=fonte)
+        # Demais valores
         else:
             item.configure(**{prop:novo_valor})
-        # Altera o widget no projeto
+
+        # # Altera o widget no projeto
         widget.propriedades[prop] = novo_valor
 
     ########## Move o widget ##########
     def move_widget(self, wid):
         # Encontra os atributos necessários
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
         aba = self.abas[nome_aba]
         canvas = aba.canvas
+
         # posição inicial do item no canvas
         x0, y0 = canvas.coords(wid)
         # Dica
-        dica = ct.ClickTooltip(canvas, text='Clique e arraste para mover o widget')
+        dica = ct.customClickTooltip(canvas, text="Clique e arraste para mover o widget")
         dica.show_tooltip()
 
         # calcula offset entre clique e posição do widget
@@ -310,10 +191,10 @@ class Projeto:
                 "dy": y0 - event.y
             }
             # Impede de ser arrastado novamente
-            canvas.unbind('<Button-1>')
+            canvas.unbind("<Button-1>")
             # ativa arrastar
-            canvas.bind('<Motion>', mover)
-            canvas.bind('<ButtonRelease-1>', parar)
+            canvas.bind("<Motion>", mover)
+            canvas.bind("<ButtonRelease-1>", parar)
 
         def mover(event):
             # muda a posição do widget
@@ -328,21 +209,22 @@ class Projeto:
 
         def parar(event):
             # Impede de ser arrastado novamente
-            canvas.unbind('<Motion>')
-            canvas.unbind('<ButtonRelease-1>')
+            canvas.unbind("<Motion>")
+            canvas.unbind("<ButtonRelease-1>")
             canvas._drag_data = {}
 
         # espera o clique esquerdo pra começar arrastar
-        canvas.bind('<Button-1>', iniciar)
+        canvas.bind("<Button-1>", iniciar)
         
     ########## Deletar um widget ##########
     def del_widget(self, wid):
         # Encontra os atributos necessários
         frame = self.notebook.select()
-        nome_aba = self.notebook.tab(frame, 'text')
+        nome_aba = self.notebook.tab(frame, "text")
         aba = self.abas[nome_aba]
         widget = aba.widgets[wid].item
         canvas = aba.canvas
+
         # Deleta o widget
         widget.destroy()
         canvas.delete(wid)

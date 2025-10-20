@@ -1,8 +1,10 @@
 # Interface
+tkinter
+CTkColorPicker
 customtkinter
-ctkcolorpicker
+darkdetect
+packaging
+pillow
 tktooltip
-Pillow
 # Modbus
 pymodbus
-pyserial
